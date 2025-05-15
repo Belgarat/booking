@@ -1,0 +1,331 @@
+'use client'
+
+import { useState } from 'react'
+
+type Event = { id: string; title: string; created_at: string, description?: string, location?: string, image_url?: string }
+type Slot = { id: string; datetime: string }
+
+export default function AdminPage() {
+    const [password, setPassword] = useState('')
+    const [authenticated, setAuthenticated] = useState(false)
+    const [events, setEvents] = useState<Event[]>([])
+    const [slots, setSlots] = useState<Slot[]>([])
+    const [selectedEvent, setSelectedEvent] = useState<Event | null>(null)
+    const [title, setTitle] = useState('')
+    const [description, setDescription] = useState('')
+    const [location, setLocation] = useState('')
+    const [imageUrl, setImageUrl] = useState('')
+    const [newSlot, setNewSlot] = useState('')
+    const [message, setMessage] = useState('')
+    const [editingEventId, setEditingEventId] = useState<string | null>(null)
+
+    const login = async () => {
+        const res = await fetch('/api/admin/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ password }),
+        })
+        if (res.ok) {
+            setAuthenticated(true)
+            loadEvents()
+        } else {
+            setMessage('Password errata')
+        }
+    }
+
+    const loadEvents = async () => {
+        const res = await fetch('/api/events')
+        const data = await res.json()
+        setEvents(data)
+    }
+
+    const loadSlots = async (eventId: string) => {
+        const res = await fetch(`/api/events/${eventId}/slots`)
+        const data = await res.json()
+        setSlots(data)
+    }
+
+    const handleSelectEvent = (event: Event) => {
+        setSelectedEvent(event)
+        setEditingEventId(null)
+        setTitle(event.title)
+        setDescription(event.description || '')
+        setLocation(event.location || '')
+        setImageUrl(event.image_url || '')
+        loadSlots(event.id)
+    }
+
+    const updateEvent = async () => {
+        if (!editingEventId) return
+
+        const res = await fetch(`/api/admin/events/${editingEventId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                authorization: password
+            },
+            body: JSON.stringify({ title, description, location, image_url: imageUrl })
+        })
+
+        if (res.ok) {
+            setMessage('Evento aggiornato')
+            setEditingEventId(null)
+            setTitle('')
+            setDescription('')
+            setLocation('')
+            setImageUrl('')
+            loadEvents()
+        }
+    }
+
+    const createEvent = async () => {
+        const res = await fetch('/api/admin/events', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                authorization: password,
+            },
+            body: JSON.stringify({
+                title,
+                description,
+                location,
+                image_url: imageUrl,
+            }),
+        })
+
+        if (res.ok) {
+            setMessage('Evento creato')
+            setTitle('')
+            setDescription('')
+            setLocation('')
+            setImageUrl('')
+            await loadEvents()
+        }
+    }
+
+
+    const addSlot = async () => {
+        if (!selectedEvent) return
+        const res = await fetch('/api/admin/slots', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                authorization: password,
+            },
+            body: JSON.stringify({ eventId: selectedEvent.id, datetime: newSlot }),
+        })
+
+        if (res.ok) {
+            setMessage('Slot aggiunto')
+            setNewSlot('')
+            loadSlots(selectedEvent.id)
+        }
+    }
+
+    const deleteSlot = async (slotId: string) => {
+        const res = await fetch(`/api/admin/slots/${slotId}`, {
+            method: 'DELETE',
+            headers: { authorization: password },
+        })
+
+        if (res.ok && selectedEvent) {
+            setMessage('Slot eliminato')
+            loadSlots(selectedEvent.id)
+        }
+    }
+
+    const deleteEvent = async (eventId: string) => {
+        const res = await fetch(`/api/admin/events/${eventId}`, {
+            method: 'DELETE',
+            headers: { authorization: password },
+        })
+
+        if (res.ok) {
+            setMessage('Evento eliminato')
+            setSelectedEvent(null)
+            loadEvents()
+            setSlots([])
+        }
+    }
+
+    if (!authenticated) {
+        return (
+            <main className="p-6 max-w-sm mx-auto space-y-4">
+                <h1 className="text-2xl font-bold">Accesso Admin</h1>
+                <input
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="border p-2 w-full"
+                    placeholder="Password"
+                />
+                <button onClick={login} className="bg-black text-white px-4 py-2 rounded w-full">
+                    Entra
+                </button>
+                {message && <p className="text-red-600">{message}</p>}
+            </main>
+        )
+    }
+
+    return (
+        <main className="flex p-6 space-x-6">
+            {/* Colonna eventi */}
+            <section className="w-1/3 space-y-4 border-r pr-4">
+                <h2 className="text-xl font-bold">Eventi</h2>
+                <ul className="space-y-2">
+                    {events.length === 0 && <p className="text-gray-500">Nessun evento inserito</p>}
+                    {events.map((e) => (
+                        <li
+                            key={e.id}
+                            className={`p-2 border rounded ${
+                                selectedEvent?.id === e.id ? 'bg-blue-100' : ''
+                            }`}
+                        >
+                            <div className="flex justify-between items-center">
+                                <span className="font-medium">{e.title}</span>
+                                <div className="flex items-center space-x-2">
+                                    {/* Dettagli */}
+                                    <button
+                                        title="Dettagli"
+                                        onClick={() => handleSelectEvent(e)}
+                                        className="text-blue-600 text-sm hover:underline"
+                                    >
+                                        Dettagli
+                                    </button>
+
+                                    {/* Modifica (future implementation) */}
+                                    <button
+                                        title="Modifica"
+                                        onClick={() => {
+                                            handleSelectEvent(e)
+                                            setEditingEventId(e.id)
+                                        }}
+                                        className="text-gray-600 text-sm"
+                                    >
+                                        ✏️
+                                    </button>
+
+                                    {/* Link pubblico */}
+                                    <a
+                                        href={`/event/${e.id}`}
+                                        target="_blank"
+                                        title="Vai alla landing"
+                                        className="text-green-600 text-sm"
+                                    >
+                                        🌐
+                                    </a>
+
+                                    {/* Elimina */}
+                                    <button
+                                        title="Elimina"
+                                        onClick={() => deleteEvent(e.id)}
+                                        className="text-red-500 text-sm"
+                                    >
+                                        🗑️
+                                    </button>
+                                </div>
+                            </div>
+                        </li>
+                    ))}
+                </ul>
+
+                <div className="mt-6 space-y-2">
+                    <h2 className="text-xl font-bold">Crea nuovo evento</h2>
+                    <input
+                        value={title}
+                        onChange={(e) => setTitle(e.target.value)}
+                        placeholder="Titolo evento"
+                        className="border p-2 w-full"
+                    />
+                    <textarea
+                        value={description}
+                        onChange={(e) => setDescription(e.target.value)}
+                        placeholder="Descrizione"
+                        className="border p-2 w-full"
+                        rows={4} // Puoi specificare il numero di righe iniziali
+                    />
+                    <input
+                        value={location}
+                        onChange={(e) => setLocation(e.target.value)}
+                        placeholder="Luogo"
+                        className="border p-2 w-full"
+                    />
+                    <input
+                        value={imageUrl}
+                        onChange={(e) => setImageUrl(e.target.value)}
+                        placeholder="URL immagine header"
+                        className="border p-2 w-full"
+                    />
+                    {editingEventId ? (
+                        <button
+                            onClick={updateEvent}
+                            className="bg-yellow-600 text-white px-4 py-2 rounded w-full"
+                        >
+                            Salva Modifiche
+                        </button>
+                    ) : (
+                        <button
+                            onClick={createEvent}
+                            className="bg-green-600 text-white px-4 py-2 rounded w-full"
+                        >
+                            Crea Evento
+                        </button>
+                    )}
+                    {editingEventId && (
+                        <button
+                            onClick={() => {
+                                setEditingEventId(null)
+                                setTitle('')
+                                setDescription('')
+                                setLocation('')
+                                setImageUrl('')
+                            }}
+                            className="text-sm text-blue-600 underline"
+                        >
+                            Annulla modifica
+                        </button>
+                    )}
+                </div>
+
+            </section>
+
+            {/* Colonna dettaglio evento */}
+            <section className="w-2/3 space-y-4">
+                {selectedEvent ? (
+                    <>
+                        <h2 className="text-xl font-bold">Slot per: {selectedEvent.title}</h2>
+
+                        <div className="flex items-center space-x-2">
+                            <input
+                                type="datetime-local"
+                                value={newSlot}
+                                onChange={(e) => setNewSlot(e.target.value)}
+                                className="border p-2 flex-1"
+                            />
+                            <button onClick={addSlot} className="bg-blue-600 text-white px-4 py-2 rounded">
+                                Aggiungi Slot
+                            </button>
+                        </div>
+
+                        <ul className="space-y-2">
+                            {slots.map((s) => (
+                                <li key={s.id} className="flex justify-between items-center border p-2 rounded">
+                                    <span>{new Date(s.datetime).toLocaleString()}</span>
+                                    <button
+                                        onClick={() => deleteSlot(s.id)}
+                                        className="text-red-500 text-sm"
+                                    >
+                                        Elimina
+                                    </button>
+                                </li>
+                            ))}
+                        </ul>
+                    </>
+                ) : (
+                    <p className="text-gray-500">Seleziona un evento per gestire gli slot.</p>
+                )}
+                {message && <p className="text-green-700">{message}</p>}
+            </section>
+        </main>
+    )
+}
