@@ -6,9 +6,9 @@ export const dynamic = 'force-dynamic'
 
 export async function DELETE(
     req: NextRequest,
-    context: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
-    const eventId = context.params.id
+    const { id: eventId } = await params
     const auth = req.headers.get('authorization')
 
     if (auth !== process.env.ADMIN_PASSWORD) {

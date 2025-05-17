@@ -12,9 +12,9 @@ export interface PeopleModel {
 
 export async function GET(
     request: NextRequest,
-    context: { params: { eventId: string } }
+    { params }: { params: Promise<{ eventId: string }> }
 ) {
-    const eventId = context.params.eventId
+    const { eventId } = await params
 
     const { data, error } = await supabase
         .from('event_slots')

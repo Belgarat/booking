@@ -6,9 +6,9 @@ export const dynamic = 'force-dynamic'
 
 export async function DELETE(
     request: NextRequest,
-    context: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
-    const eventId = context.params.id
+    const { id: eventId } = await params
     const auth = request.headers.get('authorization')
 
     if (auth !== process.env.ADMIN_PASSWORD) {
@@ -24,11 +24,12 @@ export async function DELETE(
     return NextResponse.json({ success: true })
 }
 
+
 export async function PUT(
     request: NextRequest,
-    context: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
-    const eventId = context.params.id
+    const { id: eventId } = await params
     const auth = request.headers.get('authorization')
 
     if (auth !== process.env.ADMIN_PASSWORD) {
