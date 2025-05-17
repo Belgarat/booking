@@ -1,6 +1,24 @@
 import {NextRequest, NextResponse} from 'next/server'
 import { supabase } from '@/libs/supabase'
 
+export interface Booking {
+    people: number
+}
+
+export interface EventSlot {
+    id: string
+    bookings: Booking[]
+}
+
+export interface EventWithSlots {
+    id: string
+    title: string
+    description?: string
+    created_at: string
+    max_people_per_slot: number
+    event_slots: EventSlot[]
+}
+
 export async function GET() {
     const { data, error } = await supabase
         .from('events')
@@ -21,13 +39,13 @@ export async function GET() {
         return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
-    const enriched = data.map((event: any) => {
-        const slots = event.event_slots || []
+    const enriched = data.map((event: EventWithSlots) => {
+        const slots: EventSlot[] = event.event_slots || []
         const slotCount = slots.length
         const totalMax = slotCount * (event.max_people_per_slot || 0)
 
-        const totalBooked = slots.flatMap((s: any) => s.bookings || []).reduce(
-            (sum: number, b: any) => sum + (b.people || 1),
+        const totalBooked = slots.flatMap((s: EventSlot) => s.bookings || []).reduce(
+            (sum: number, b: Booking) => sum + (b.people || 1),
             0
         )
 

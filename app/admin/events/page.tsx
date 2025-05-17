@@ -30,8 +30,9 @@ export default function AdminEventListPage() {
                 if (!res.ok) throw new Error('Errore nel recupero eventi')
                 const data = await res.json()
                 setEvents(data)
-            } catch (err: any) {
-                setError(err.message || 'Errore sconosciuto')
+            } catch (err: unknown) {
+                const errorMessage = err instanceof Error ? err.message : 'Errore sconosciuto';
+                setError(errorMessage);
             } finally {
                 setLoading(false)
             }

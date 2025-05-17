@@ -4,17 +4,17 @@ import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 
 type Event = {
-    id: string;
-    title: string;
-    description?: string;
-    location?: string;
-    image_url?: string;
-    created_at: string;
-    max_people_per_slot: number;
-    website_url?: string;
-    booked: number;
-    max: number;
-    remaining: number;
+    id: string
+    title: string
+    description?: string
+    location?: string
+    image_url?: string
+    created_at: string
+    max_people_per_slot: number
+    website_url?: string
+    booked: number
+    max: number
+    remaining: number
 }
 
 type Slot = {
@@ -59,10 +59,11 @@ export default function EventPage() {
     }, [id])
 
     const getRemaining = (slotId: string): number => {
+        console.log(bookings)
         const bookedForSlot = bookings
             .filter((b) => b.slot_id === slotId)
-            .reduce((sum, b) => sum + (b.people || 1), 0)
-
+            .reduce((sum, b) => sum + (Number(b.people) || 1), 0)
+        console.log(bookedForSlot)
         return (event?.max_people_per_slot || 0) - bookedForSlot
     }
 
@@ -105,12 +106,10 @@ export default function EventPage() {
             setPeople(1)
             setSelectedSlot(null)
 
-            // 🔁 Aggiorna bookings
             const bookingsRes = await fetch('/api/bookings')
             const updatedBookings = await bookingsRes.json()
             setBookings(updatedBookings)
 
-            // 🔁 Aggiorna slots
             const slotsRes = await fetch(`/api/events/${id}/slots`)
             const updatedSlots = await slotsRes.json()
             setSlots(updatedSlots)
@@ -142,7 +141,9 @@ export default function EventPage() {
                 )}
 
                 {event.description && (
-                    <p className="text-base text-gray-700 leading-relaxed">{event.description}</p>
+                    <p className="text-base text-gray-700 leading-relaxed">
+                        {event.description}
+                    </p>
                 )}
 
                 {event.website_url && (
@@ -156,10 +157,16 @@ export default function EventPage() {
                 )}
             </section>
 
-            <section className="border rounded-lg p-6 shadow-sm space-y-6">
+            <form
+                onSubmit={(e) => {
+                    e.preventDefault()
+                    submit()
+                }}
+                className="border rounded-lg p-6 shadow-sm space-y-6"
+            >
                 <h2 className="text-xl font-semibold text-gray-800">Prenota uno slot disponibile</h2>
 
-                {slots.filter(s => isSlotAvailable(s.id)).length === 0 && (
+                {slots.filter((s) => isSlotAvailable(s.id)).length === 0 && (
                     <p className="text-red-600">Nessuno slot disponibile al momento.</p>
                 )}
 
@@ -180,8 +187,8 @@ export default function EventPage() {
                                     onChange={() => setSelectedSlot(slot)}
                                 />
                                 <span className="ml-2 text-sm font-medium">
-                {new Date(slot.datetime).toLocaleString()} ({remaining} posti disponibili)
-              </span>
+                  {new Date(slot.datetime).toLocaleString()} ({remaining} posti disponibili)
+                </span>
                             </label>
                         )
                     })}
@@ -213,10 +220,9 @@ export default function EventPage() {
                         />
                         {emailError && <p className="text-red-600 text-sm">{emailError}</p>}
                     </div>
+
                     <div>
-                        <label className="block text-sm mb-1">
-                            Numero di telefono (opzionale)
-                        </label>
+                        <label className="block text-sm mb-1">Numero di telefono (opzionale)</label>
                         <input
                             value={phone}
                             onChange={(e) => setPhone(e.target.value)}
@@ -224,6 +230,7 @@ export default function EventPage() {
                             className="border p-2 w-full rounded"
                         />
                     </div>
+
                     <div>
                         <label className="block text-sm mb-1">
                             Numero partecipanti{' '}
@@ -260,8 +267,7 @@ export default function EventPage() {
                         )}
                     </div>
                 </div>
-            </section>
+            </form>
         </main>
     )
-
 }
