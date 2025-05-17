@@ -1,25 +1,40 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
-import { cookies } from 'next/headers'
+import { supabase } from '@/libs/supabase'
 
-export const runtime = 'nodejs'
-export const dynamic = 'force-dynamic'
+export interface SlotModel {
+    id: string
+    datetime: string
+    bookings?: PeopleModel[]
+}
+export interface PeopleModel {
+    people: number
+}
 
 export async function GET(
     request: NextRequest,
     context: { params: { eventId: string } }
 ) {
-    const cookieStore = await cookies()
-    const supabase = createRouteHandlerClient({ cookies: () => cookieStore })
-    const {eventId: eventId} = await Promise.resolve(context.params);
+    const eventId = context.params.eventId
 
     const { data, error } = await supabase
         .from('event_slots')
-        .select('*')
+        .select(`
+      id,
+      datetime,
+      bookings:bookings(people)
+    `)
         .eq('event_id', eventId)
         .order('datetime', { ascending: true })
 
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    if (error) {
+        return NextResponse.json({ error: error.message }, { status: 500 })
+    }
 
-    return NextResponse.json(data)
+    const enriched = data.map((slot: SlotModel) => ({
+        id: slot.id,
+        datetime: slot.datetime,
+        booked: slot.bookings?.reduce((sum: number, b: PeopleModel) => sum + (b.people || 1), 0) || 0,
+    }))
+
+    return NextResponse.json(enriched)
 }

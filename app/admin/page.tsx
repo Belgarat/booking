@@ -2,19 +2,34 @@
 
 import { useState } from 'react'
 
-type Event = { id: string; title: string; created_at: string, description?: string, location?: string, image_url?: string }
-type Slot = { id: string; datetime: string }
+type Event = {
+    id: string
+    title: string
+    description?: string
+    location?: string
+    image_url?: string
+    website_url?: string
+    max_people_per_slot: number
+    created_at: string
+    booked: number       // totale iscritti
+    max: number          // capacità massima totale (slot * max_people_per_slot)
+    remaining: number    // max - booked
+}
+type Slot = { id: string; datetime: string, booked?: number }
+
 
 export default function AdminPage() {
     const [password, setPassword] = useState('')
     const [authenticated, setAuthenticated] = useState(false)
     const [events, setEvents] = useState<Event[]>([])
     const [slots, setSlots] = useState<Slot[]>([])
+    const [maxPeople, setMaxPeople] = useState<number>(1)
     const [selectedEvent, setSelectedEvent] = useState<Event | null>(null)
     const [title, setTitle] = useState('')
     const [description, setDescription] = useState('')
     const [location, setLocation] = useState('')
     const [imageUrl, setImageUrl] = useState('')
+    const [websiteUrl, setWebsiteUrl] = useState('')
     const [newSlot, setNewSlot] = useState('')
     const [message, setMessage] = useState('')
     const [editingEventId, setEditingEventId] = useState<string | null>(null)
@@ -45,14 +60,26 @@ export default function AdminPage() {
         setSlots(data)
     }
 
-    const handleSelectEvent = (event: Event) => {
+    function resetEvent() {
+        setEditingEventId(null)
+        setTitle('')
+        setDescription('')
+        setLocation('')
+        setImageUrl('')
+        setWebsiteUrl('')
+        setMaxPeople(1)
+    }
+
+    const handleSelectEvent =  async (event: Event) => {
         setSelectedEvent(event)
         setEditingEventId(null)
         setTitle(event.title)
         setDescription(event.description || '')
         setLocation(event.location || '')
         setImageUrl(event.image_url || '')
-        loadSlots(event.id)
+        setWebsiteUrl(event.website_url || '')
+        setMaxPeople(event.max_people_per_slot || 1)
+        await loadSlots(event.id)
     }
 
     const updateEvent = async () => {
@@ -64,7 +91,7 @@ export default function AdminPage() {
                 'Content-Type': 'application/json',
                 authorization: password
             },
-            body: JSON.stringify({ title, description, location, image_url: imageUrl })
+            body: JSON.stringify({ title, description, location, image_url: imageUrl, max_people_per_slot: maxPeople, website_url: websiteUrl })
         })
 
         if (res.ok) {
@@ -74,7 +101,9 @@ export default function AdminPage() {
             setDescription('')
             setLocation('')
             setImageUrl('')
-            loadEvents()
+            setWebsiteUrl('')
+            setMaxPeople(1)
+            await loadEvents()
         }
     }
 
@@ -90,6 +119,8 @@ export default function AdminPage() {
                 description,
                 location,
                 image_url: imageUrl,
+                max_people_per_slot: maxPeople,
+                website_url: websiteUrl,
             }),
         })
 
@@ -99,6 +130,8 @@ export default function AdminPage() {
             setDescription('')
             setLocation('')
             setImageUrl('')
+            setWebsiteUrl('')
+            setMaxPeople(1)
             await loadEvents()
         }
     }
@@ -118,7 +151,7 @@ export default function AdminPage() {
         if (res.ok) {
             setMessage('Slot aggiunto')
             setNewSlot('')
-            loadSlots(selectedEvent.id)
+            await loadSlots(selectedEvent.id)
         }
     }
 
@@ -130,7 +163,7 @@ export default function AdminPage() {
 
         if (res.ok && selectedEvent) {
             setMessage('Slot eliminato')
-            loadSlots(selectedEvent.id)
+            await loadSlots(selectedEvent.id)
         }
     }
 
@@ -143,7 +176,7 @@ export default function AdminPage() {
         if (res.ok) {
             setMessage('Evento eliminato')
             setSelectedEvent(null)
-            loadEvents()
+            await loadEvents()
             setSlots([])
         }
     }
@@ -174,7 +207,7 @@ export default function AdminPage() {
                 <h2 className="text-xl font-bold">Eventi</h2>
                 <ul className="space-y-2">
                     {events.length === 0 && <p className="text-gray-500">Nessun evento inserito</p>}
-                    {events.map((e) => (
+                    {events.length > 0 && events?.map((e) => (
                         <li
                             key={e.id}
                             className={`p-2 border rounded ${
@@ -187,7 +220,10 @@ export default function AdminPage() {
                                     {/* Dettagli */}
                                     <button
                                         title="Dettagli"
-                                        onClick={() => handleSelectEvent(e)}
+                                        onClick={() => {
+                                            handleSelectEvent(e)
+                                            setEditingEventId(e.id)
+                                        }}
                                         className="text-blue-600 text-sm hover:underline"
                                     >
                                         Dettagli
@@ -228,6 +264,13 @@ export default function AdminPage() {
                         </li>
                     ))}
                 </ul>
+                <div id='events-actions' className='flex justify-end items-center'>
+                    <button
+                        title="Reset"
+                        onClick={() => resetEvent()}
+                        className="text-gray-500 text-sm"
+                    >Reset selection</button>
+                </div>
 
                 <div className="mt-6 space-y-2">
                     <h2 className="text-xl font-bold">Crea nuovo evento</h2>
@@ -254,6 +297,21 @@ export default function AdminPage() {
                         value={imageUrl}
                         onChange={(e) => setImageUrl(e.target.value)}
                         placeholder="URL immagine header"
+                        className="border p-2 w-full"
+                    />
+                    <input
+                        type="url"
+                        value={websiteUrl}
+                        onChange={(e) => setWebsiteUrl(e.target.value)}
+                        placeholder="URL sito web (opzionale)"
+                        className="border p-2 w-full"
+                    />
+                    <input
+                        type="number"
+                        min={1}
+                        value={maxPeople}
+                        onChange={(e) => setMaxPeople(Number(e.target.value))}
+                        placeholder="Posti massimi per slot"
                         className="border p-2 w-full"
                     />
                     {editingEventId ? (
@@ -308,18 +366,31 @@ export default function AdminPage() {
                         </div>
 
                         <ul className="space-y-2">
-                            {slots.map((s) => (
-                                <li key={s.id} className="flex justify-between items-center border p-2 rounded">
-                                    <span>{new Date(s.datetime).toLocaleString()}</span>
-                                    <button
-                                        onClick={() => deleteSlot(s.id)}
-                                        className="text-red-500 text-sm"
-                                    >
-                                        Elimina
-                                    </button>
-                                </li>
-                            ))}
+                            <h2 className="text-xl font-bold">Slot list:</h2>
+                            {slots.map((s) => {
+                                const booked = s.booked || 0
+                                const max = selectedEvent?.max_people_per_slot || 0
+                                const remaining = max - booked
+
+                                return (
+                                    <li key={s.id} className="border p-3 rounded flex justify-between items-center">
+                                        <div>
+                                            <div className="font-medium">{new Date(s.datetime).toLocaleString()}</div>
+                                            <div className="text-sm text-gray-600">
+                                                {booked} iscritti / {max} posti disponibili ({remaining} rimasti)
+                                            </div>
+                                        </div>
+                                        <button
+                                            onClick={() => deleteSlot(s.id)}
+                                            className="text-red-500 text-sm"
+                                        >
+                                            Elimina
+                                        </button>
+                                    </li>
+                                )
+                            })}
                         </ul>
+
                     </>
                 ) : (
                     <p className="text-gray-500">Seleziona un evento per gestire gli slot.</p>

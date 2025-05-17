@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
-import { cookies } from 'next/headers'
+import { supabase } from '@/libs/supabase'
 
 export async function POST(req: NextRequest) {
-    const supabase = createRouteHandlerClient({ cookies: () => cookies() })
     const auth = req.headers.get('authorization')
     const { eventId, datetime } = await req.json()
 

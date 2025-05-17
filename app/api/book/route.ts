@@ -1,23 +1,42 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
-import { cookies } from 'next/headers'
+import { supabase } from '@/libs/supabase'
 
 export async function POST(req: NextRequest) {
-    const supabase = createRouteHandlerClient({ cookies: () => cookies() })
-    const { name, email, slotId } = await req.json()
+    const { name, email, phone, slotId, people } = await req.json()
 
-    const { data: existing } = await supabase
+    // carica slot e evento relativo
+    const { data: slotData } = await supabase
+        .from('event_slots')
+        .select('event_id')
+        .eq('id', slotId)
+        .single()
+
+    const { data: eventData } = await supabase
+        .from('events')
+        .select('max_people_per_slot')
+        .eq('id', slotData?.event_id)
+        .single()
+
+    const { data: existingBookings } = await supabase
         .from('bookings')
-        .select('id')
+        .select('people')
         .eq('slot_id', slotId)
 
-    if (existing && existing.length > 0) {
-        return NextResponse.json({ error: 'Slot già prenotato' }, { status: 409 })
+    const totalBooked = existingBookings?.reduce((sum, b) => sum + (b.people || 1), 0) || 0
+
+    if (totalBooked + people > eventData?.max_people_per_slot) {
+        return NextResponse.json({ error: 'Slot pieno' }, { status: 409 })
     }
 
-    const { error } = await supabase.from('bookings').insert([{ name, email, slot_id: slotId }])
+// inserisce
+    const { error } = await supabase.from('bookings').insert([{
+        name, email, phone, slot_id: slotId, people
+    }])
 
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+    if (error) {
+        return NextResponse.json({ error: error.message }, { status: 500 })
+    }
 
     return NextResponse.json({ success: true })
 }
