@@ -137,11 +137,11 @@ export default function EventPage() {
 
             <section className="space-y-3">
                 {event.location && (
-                    <p className="text-sm text-gray-500 italic">📍 {event.location}</p>
+                    <p className="text-sm dark:text-gray-50 text-gray-500 italic">📍 {event.location}</p>
                 )}
 
                 {event.description && (
-                    <p className="text-base text-gray-700 leading-relaxed">
+                    <p className="text-base dark:text-gray-50 text-gray-700 leading-relaxed">
                         {event.description}
                     </p>
                 )}
@@ -150,7 +150,7 @@ export default function EventPage() {
                     <a
                         href={event.website_url}
                         target="_blank"
-                        className="inline-block text-sm text-blue-600 underline hover:text-blue-800"
+                        className="inline-block text-sm dark:text-gray-50 text-blue-600 underline hover:text-blue-800"
                     >
                         🌐 Vai al sito ufficiale
                     </a>
@@ -164,7 +164,7 @@ export default function EventPage() {
                 }}
                 className="border rounded-lg p-6 shadow-sm space-y-6"
             >
-                <h2 className="text-xl font-semibold text-gray-800">Prenota uno slot disponibile</h2>
+                <h2 className="text-xl font-semibold dark:text-gray-50 text-gray-800">Prenota uno slot disponibile</h2>
 
                 {slots.filter((s) => isSlotAvailable(s.id)).length === 0 && (
                     <p className="text-red-600">Nessuno slot disponibile al momento.</p>
@@ -177,7 +177,7 @@ export default function EventPage() {
                         return (
                             <label
                                 key={slot.id}
-                                className="block border p-2 rounded hover:bg-gray-100 transition cursor-pointer"
+                                className="block border p-2 rounded  dark:text-gray-50  dark:hover:bg-gray-800 hover:bg-gray-100 transition cursor-pointer"
                             >
                                 <input
                                     type="radio"
@@ -186,7 +186,7 @@ export default function EventPage() {
                                     checked={selectedSlot?.id === slot.id}
                                     onChange={() => setSelectedSlot(slot)}
                                 />
-                                <span className="ml-2 text-sm font-medium">
+                                <span className="ml-2 dark:text-gray-50 text-sm font-medium">
                   {new Date(slot.datetime).toLocaleString()} ({remaining} posti disponibili)
                 </span>
                             </label>
@@ -198,7 +198,7 @@ export default function EventPage() {
                         value={name}
                         onChange={(e) => setName(e.target.value)}
                         placeholder="Nome"
-                        className="border p-2 w-full rounded"
+                        className="border p-2 w-full rounded dark:bg-gray-50"
                         required
                     />
 
@@ -215,24 +215,24 @@ export default function EventPage() {
                                 }
                             }}
                             placeholder="Email"
-                            className="border p-2 w-full rounded"
+                            className="border p-2 w-full rounded dark:bg-gray-50"
                             required
                         />
                         {emailError && <p className="text-red-600 text-sm">{emailError}</p>}
                     </div>
 
                     <div>
-                        <label className="block text-sm mb-1">Numero di telefono (opzionale)</label>
+                        <label className="block text-sm mb-1 dark:text-gray-50">Numero di telefono (opzionale)</label>
                         <input
                             value={phone}
                             onChange={(e) => setPhone(e.target.value)}
                             placeholder="Telefono (opzionale)"
-                            className="border p-2 w-full rounded"
+                            className="border p-2 w-full rounded dark:bg-gray-50"
                         />
                     </div>
 
                     <div>
-                        <label className="block text-sm mb-1">
+                        <label className="block text-sm mb-1 dark:text-gray-50">
                             Numero partecipanti{' '}
                             {selectedSlot && (
                                 <strong>(max {getRemaining(selectedSlot.id)})</strong>
@@ -243,7 +243,7 @@ export default function EventPage() {
                             min={1}
                             value={people}
                             onChange={(e) => setPeople(Number(e.target.value))}
-                            className="border p-2 w-full rounded"
+                            className="border p-2 w-full rounded dark:bg-gray-50"
                             required
                         />
                         {!canSubmit && selectedSlot && (

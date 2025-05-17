@@ -1,8 +1,10 @@
 @import "tailwindcss";
+@tailwind utilities;
 
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --link: #60a5fa;
 }
 
 @theme inline {
@@ -16,6 +18,11 @@
   :root {
     --background: #0a0a0a;
     --foreground: #ededed;
+    --link: #60a5fa;
+    --link-hover: #93c5fd;
+    --input-bg: #1f2937;
+    --input-fg: #f4f4f5;
+    --placeholder: #9ca3af;
   }
 }
 
@@ -25,5 +32,6 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 a {
+  color: var(--link);
   cursor: pointer;
 }
