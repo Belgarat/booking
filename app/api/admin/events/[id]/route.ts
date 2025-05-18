@@ -45,6 +45,7 @@ export async function PUT(
             description: body.description,
             location: body.location,
             image_url: body.image_url,
+            website_url: body.website_url,
             max_people_per_slot: body.max_people_per_slot
         })
         .eq('id', eventId)

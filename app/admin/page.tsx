@@ -31,7 +31,26 @@ type Slot = {
     bookings?: Booking[]
 }
 
+interface EventPayload {
+    title: string;
+    description: string;
+    location: string;
+    image_url: string;
+    max_people_per_slot: number;
+    website_url: string;
+}
 
+const API_ENDPOINT = '/api/admin/events';
+const CONTENT_TYPE_JSON = 'application/json';
+
+interface EventData {
+    title: string;
+    description: string;
+    location: string;
+    image_url: string;
+    max_people_per_slot: number;
+    website_url: string;
+}
 
 export default function AdminPage() {
     const [password, setPassword] = useState('')
@@ -49,6 +68,7 @@ export default function AdminPage() {
     const [message, setMessage] = useState('')
     const [editingEventId, setEditingEventId] = useState<string | null>(null)
     const [expandedSlotId, setExpandedSlotId] = useState<string | null>(null)
+    const [savingEvent, setSavingEvent] = useState(false)
 
     const login = async () => {
         const res = await fetch('/api/admin/login', {
@@ -99,58 +119,94 @@ export default function AdminPage() {
     }
 
     const updateEvent = async () => {
-        if (!editingEventId) return
+        if (!editingEventId) return;
+        setSavingEvent(true);
+        
+        const API_ENDPOINT = `/api/admin/events/${editingEventId}`;
+        
+        const eventData: EventData = {
+            title,
+            description,
+            location,
+            image_url: imageUrl,
+            max_people_per_slot: maxPeople,
+            website_url: websiteUrl
+        };
+        
+        const resetFormFields = () => {
+            setTitle('');
+            setDescription('');
+            setLocation('');
+            setImageUrl('');
+            setWebsiteUrl('');
+            setMaxPeople(1);
+            setEditingEventId(null);
+        };
 
-        const res = await fetch(`/api/admin/events/${editingEventId}`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-                authorization: password
-            },
-            body: JSON.stringify({ title, description, location, image_url: imageUrl, max_people_per_slot: maxPeople, website_url: websiteUrl })
-        })
+        try {
+            const res = await fetch(API_ENDPOINT, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    authorization: password
+                },
+                body: JSON.stringify(eventData)
+            });
 
-        if (res.ok) {
-            setMessage('Evento aggiornato')
-            setEditingEventId(null)
-            setTitle('')
-            setDescription('')
-            setLocation('')
-            setImageUrl('')
-            setWebsiteUrl('')
-            setMaxPeople(1)
-            await loadEvents()
+            if (res.ok) {
+                setMessage('Evento aggiornato');
+                resetFormFields();
+                await loadEvents();
+            }
+        } finally {
+            setSavingEvent(false);
         }
-    }
+    };
 
     const createEvent = async () => {
-        const res = await fetch('/api/admin/events', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                authorization: password,
-            },
-            body: JSON.stringify({
+        try {
+            setSavingEvent(true);
+            
+            const eventData: EventPayload = {
                 title,
                 description,
                 location,
                 image_url: imageUrl,
                 max_people_per_slot: maxPeople,
                 website_url: websiteUrl,
-            }),
-        })
-
-        if (res.ok) {
-            setMessage('Evento creato')
-            setTitle('')
-            setDescription('')
-            setLocation('')
-            setImageUrl('')
-            setWebsiteUrl('')
-            setMaxPeople(1)
-            await loadEvents()
+            };
+    
+            const response = await fetch(API_ENDPOINT, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': CONTENT_TYPE_JSON,
+                    authorization: password,
+                },
+                body: JSON.stringify(eventData),
+            });
+    
+            if (!response.ok) {
+                throw new Error(`Errore nella creazione dell'evento: ${response.statusText}`);
+            }
+    
+            resetForm();
+            setMessage('Evento creato');
+            await loadEvents();
+        } catch (error) {
+            setMessage(`Errore: ${error instanceof Error ? error.message : 'Errore sconosciuto'}`);
+        } finally {
+            setSavingEvent(false);
         }
-    }
+    };
+    
+    const resetForm = () => {
+        setTitle('');
+        setDescription('');
+        setLocation('');
+        setImageUrl('');
+        setWebsiteUrl('');
+        setMaxPeople(1);
+    };
 
 
     const addSlot = async () => {
@@ -333,14 +389,16 @@ export default function AdminPage() {
                     {editingEventId ? (
                         <button
                             onClick={updateEvent}
-                            className="bg-yellow-600 text-white px-4 py-2 rounded w-full"
+                            className="bg-yellow-600 text-white px-4 py-2 rounded w-full disabled:opacity-50"
+                            disabled={!title || !description || !location || !imageUrl || !maxPeople || savingEvent}
                         >
                             Salva Modifiche
                         </button>
                     ) : (
                         <button
                             onClick={createEvent}
-                            className="bg-green-600 text-white px-4 py-2 rounded w-full"
+                            className="bg-green-600 text-white px-4 py-2 rounded w-full disabled:opacity-50"
+                            disabled={!title || !description || !location || !imageUrl || !maxPeople || savingEvent}
                         >
                             Crea Evento
                         </button>
@@ -354,8 +412,11 @@ export default function AdminPage() {
                                     setDescription('')
                                     setLocation('')
                                     setImageUrl('')
+                                    setWebsiteUrl('')
+                                    setMaxPeople(1)
+                                    resetEvent()
                                 }}
-                                className="text-sm text-blue-600 underline"
+                                className="text-gray-500 text-sm"
                             >
                                 Annulla modifica
                             </button>
