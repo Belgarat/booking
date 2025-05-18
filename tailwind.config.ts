@@ -9,7 +9,12 @@ module.exports = {
     darkMode: 'media', // Questa è la chiave!
     theme: {
         extend: {
-            // Puoi estendere i tuoi stili qui se necessario
+            colors: {
+                primary: 'var(--color-primary)',
+                background: 'var(--color-background)',
+                accent: 'var(--color-accent)',
+                foreground: 'var(--color-foreground)',
+            }
         },
     },
     plugins: [],

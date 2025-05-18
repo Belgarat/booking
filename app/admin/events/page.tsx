@@ -112,7 +112,7 @@ export default function AdminEventListPage() {
                 <a
                     href="/admin"
                     target="_blank"
-                    className="text-sm text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 underline"
+                    className="text-primary dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
                 >
                     ↗ Vai alla pagina admin
                 </a>
