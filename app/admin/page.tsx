@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import {ArrowDownIcon, ArrowUpIcon, TrashIcon} from "@heroicons/react/16/solid";
 
 type Event = {
     id: string
@@ -15,7 +16,21 @@ type Event = {
     max: number          // capacità massima totale (slot * max_people_per_slot)
     remaining: number    // max - booked
 }
-type Slot = { id: string; datetime: string, booked?: number }
+type Booking = {
+    id: string
+    name: string
+    email: string
+    phone?: string
+    people: number
+}
+
+type Slot = {
+    id: string
+    datetime: string
+    booked?: number
+    bookings?: Booking[]
+}
+
 
 
 export default function AdminPage() {
@@ -33,6 +48,7 @@ export default function AdminPage() {
     const [newSlot, setNewSlot] = useState('')
     const [message, setMessage] = useState('')
     const [editingEventId, setEditingEventId] = useState<string | null>(null)
+    const [expandedSlotId, setExpandedSlotId] = useState<string | null>(null)
 
     const login = async () => {
         const res = await fetch('/api/admin/login', {
@@ -330,18 +346,20 @@ export default function AdminPage() {
                         </button>
                     )}
                     {editingEventId && (
-                        <button
-                            onClick={() => {
-                                setEditingEventId(null)
-                                setTitle('')
-                                setDescription('')
-                                setLocation('')
-                                setImageUrl('')
-                            }}
-                            className="text-sm text-blue-600 underline"
-                        >
-                            Annulla modifica
-                        </button>
+                        <div className='flex justify-end items-center'>
+                            <button
+                                onClick={() => {
+                                    setEditingEventId(null)
+                                    setTitle('')
+                                    setDescription('')
+                                    setLocation('')
+                                    setImageUrl('')
+                                }}
+                                className="text-sm text-blue-600 underline"
+                            >
+                                Annulla modifica
+                            </button>
+                        </div>
                     )}
                 </div>
 
@@ -371,21 +389,50 @@ export default function AdminPage() {
                                 const booked = s.booked || 0
                                 const max = selectedEvent?.max_people_per_slot || 0
                                 const remaining = max - booked
+                                const isOpen = expandedSlotId === s.id
 
                                 return (
-                                    <li key={s.id} className="border p-3 rounded flex justify-between items-center">
-                                        <div>
-                                            <div className="font-medium">{new Date(s.datetime).toLocaleString()}</div>
-                                            <div className="text-sm text-gray-600">
-                                                {booked} iscritti / {max} posti disponibili ({remaining} rimasti)
+                                    <li key={s.id} className="border p-3 rounded space-y-2">
+                                        <div
+                                            className="flex justify-between items-center cursor-pointer"
+                                            onClick={() => setExpandedSlotId(isOpen ? null : s.id)}
+                                        >
+                                            <div>
+                                                <div className="font-medium">{new Date(s.datetime).toLocaleString()}</div>
+                                                <div className="text-sm text-gray-600">
+                                                    {booked} iscritti / {max} posti disponibili ({remaining} rimasti)
+                                                </div>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation()
+                                                        deleteSlot(s.id)
+                                                    }}
+                                                    className="text-red-500 text-sm"
+                                                >
+                                                    <TrashIcon className="w-4 h-4" aria-hidden="true" />
+                                                </button>
+                                                <span className="text-gray-500 flex flex-col items-center">Dettagli {isOpen ? <ArrowUpIcon className="w-4 h-4"/> : <ArrowDownIcon className="w-4 h-4"/>}</span>
                                             </div>
                                         </div>
-                                        <button
-                                            onClick={() => deleteSlot(s.id)}
-                                            className="text-red-500 text-sm"
-                                        >
-                                            Elimina
-                                        </button>
+
+                                        {/* Dettagli prenotazioni espansi solo se slot aperto */}
+                                        {isOpen && s.bookings && s.bookings.length > 0 && (
+                                            <div className="mt-2 bg-gray-50 dark:bg-gray-800 rounded p-3 space-y-1 text-sm">
+                                                <p className="font-medium text-gray-700 dark:text-gray-200">Prenotazioni:</p>
+                                                <ul className="divide-y divide-gray-200 dark:divide-gray-700">
+                                                    {s.bookings.map((b) => (
+                                                        <li key={b.id} className="py-1 flex flex-col md:flex-row md:items-center md:gap-4">
+                                                            <span className="font-semibold">{b.name}</span>
+                                                            <span className="text-gray-500">{b.email}</span>
+                                                            {b.phone && <span className="text-gray-500">📞 {b.phone}</span>}
+                                                            <span>👥 {b.people} partecipant{b.people > 1 ? 'i' : 'e'}</span>
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                            </div>
+                                        )}
                                     </li>
                                 )
                             })}
