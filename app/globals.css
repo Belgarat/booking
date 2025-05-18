@@ -1,43 +1,75 @@
+/* Custom colors usage:
+   - text-primary for primary color (#F26522)
+   - text-accent for accent color (#FFCB05) 
+   - text-foreground for main text color
+
+   Into code add this classes:
+   - text-primary for primary color
+   - text-accent for accent color
+   - bg-background for background color
+   - bg-primary for primary background
+   - bg-accent for accent background
+   - hover:text-primary for hover primary color
+   - hover:text-accent for hover accent color
+   - hover:bg-primary for hover primary background
+   - hover:bg-accent for hover accent background
+   
+   Custom fonts usage:
+   - font-sans for Inter font
+   - font-mono for Fira Code font
+   
+   Layout classes:
+   - container for responsive max-width container
+   - px-4 sm:px-6 lg:px-8 for responsive padding
+   
+   Dark mode is automatically enabled based on system preferences
+   Add dark: prefix to override styles in dark mode, example:
+   - dark:bg-background
+   - dark:text-foreground
+*/
+
 @import "tailwindcss";
+
 @tailwind utilities;
 
 :root {
-  --color-primary: #F26522;
-  --color-accent: #FFCB05;
-  --color-background: #ffffff;
-  --color-foreground: #171717;
-  --link: var(--color-primary);
-  --font-geist-sans: "Inter", sans-serif;
-  --font-geist-mono: "Fira Code", monospace;
+    --color-primary: #F26522;
+    --color-accent: #FFCB05;
+    --color-background: #ffffff;
+    --color-foreground: #171717;
+    --link: var(--color-primary);
+    --font-geist-sans: "Inter", sans-serif;
+    --font-geist-mono: "Fira Code", monospace;
 }
 
 @theme inline {
-  --color-background: var(--color-background);
-  --color-foreground: var(--color-foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+    --color-background: var(--color-background);
+    --color-foreground: var(--color-foreground);
+    --font-sans: var(--font-geist-sans);
+    --font-mono: var(--font-geist-mono);
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
-    --color-background: #000000;
-    --color-foreground: #ffffff;
-    --background: var(--color-background);
-    --foreground: var(--color-foreground);
-    --link: #60a5fa;
-    --link-hover: #93c5fd;
-    --input-bg: #1f2937;
-    --input-fg: #f4f4f5;
-    --placeholder: #9ca3af;
-  }
+    :root {
+        --color-background: #000000;
+        --color-foreground: #ffffff;
+        --background: var(--color-background);
+        --foreground: var(--color-foreground);
+        --link: #60a5fa;
+        --link-hover: #93c5fd;
+        --input-bg: #1f2937;
+        --input-fg: #f4f4f5;
+        --placeholder: #9ca3af;
+    }
 }
 
 body {
-  background: var(--color-background);
-  color: var(--color-foreground);
-  font-family: var(--font-sans);
+    background: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
 }
+
 a {
-  color: var(--link);
-  cursor: pointer;
+    color: var(--link);
+    cursor: pointer;
 }
