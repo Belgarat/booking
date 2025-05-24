@@ -18,7 +18,9 @@ export default function EventCard({ event }: Props) {
                 </p>
 
                 {event.description && (
-                    <p className="text-gray-700 dark:text-gray-300 text-sm">{event.description}</p>
+                    <p className="text-base text-gray-700 leading-relaxed whitespace-pre-line dark:text-gray-50">
+                        {event.description}
+                    </p>
                 )}
 
                 <div className="text-sm">
