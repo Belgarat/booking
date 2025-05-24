@@ -2,8 +2,6 @@
 
 import {useState} from 'react'
 import AdminLoginForm from "@/app/components/admin/AdminLoginForm"
-import AdminEventList from "@/app/components/admin/AdminEventList"
-import AdminEventForm from "@/app/components/admin/AdminEventForm"
 import {EventWithStats, SlotWithBookings} from "@/types/enriched"
 import SlotSelector from "@/app/components/admin/SlotSelector"
 import SlotList from "@/app/components/admin/SlotList"
@@ -14,6 +12,9 @@ import {useEventForm} from '@/hooks/useEventForm'
 import {API_CONFIG} from '@/config/api'
 import {FEEDBACK_CONFIG} from '@/config/feedback'
 import {toUTCISOString} from "@/utils/date";
+import EventSidebar from "@/app/components/admin/EventSidebar";
+import CreateEventModal from "@/app/components/admin/CreateEventModal";
+import EditEventModal from "@/app/components/admin/EditEventModal";
 
 export default function AdminPage() {
     // Stati di autenticazione
@@ -27,11 +28,22 @@ export default function AdminPage() {
     const [editingEventId, setEditingEventId] = useState<string | null>(null)
     const [savingEvent, setSavingEvent] = useState(false)
     const [newSlot, setNewSlot] = useState('')
+    const [createModalOpen, setCreateModalOpen] = useState(false)
+    const [editModalOpen, setEditModalOpen] = useState(false)
+
+
 
     // Utilizzo dei custom hooks
     const {feedback, showFeedback} = useFeedback()
     const {formData, updateField, resetForm} = useEventForm()
     const api = useApi(password, showFeedback)
+
+    const handleCreateNew = () => {
+        resetForm()
+        setEditingEventId(null)
+        setCreateModalOpen(true)
+    }
+
 
     // Funzioni di gestione API
     const login = async () => {
@@ -79,7 +91,6 @@ export default function AdminPage() {
     }
 
 
-    // Gestori degli eventi
     const handleSelectEvent = async (event: EventWithStats) => {
         setSelectedEvent(event)
         setEditingEventId(event.id)
@@ -89,12 +100,23 @@ export default function AdminPage() {
         updateField('image_url', event.image_url || '')
         updateField('website_url', event.website_url || '')
         updateField('max_people_per_slot', event.max_people_per_slot || 1)
+
         await loadSlots(event.id)
+        // setEditModalOpen(true)
     }
 
-    const handleCancel = () => {
-        setEditingEventId(null)
-        resetForm()
+    const handleEditEvent = async (event: EventWithStats) => {
+        setSelectedEvent(event)
+        setEditingEventId(event.id)
+        updateField('title', event.title)
+        updateField('description', event.description || '')
+        updateField('location', event.location || '')
+        updateField('image_url', event.image_url || '')
+        updateField('website_url', event.website_url || '')
+        updateField('max_people_per_slot', event.max_people_per_slot || 1)
+
+        //await loadSlots(event.id)
+        setEditModalOpen(true)
     }
 
     // Operazioni CRUD
@@ -196,30 +218,14 @@ export default function AdminPage() {
 
     return (
         <main className="flex p-6 space-x-6">
-            <section className="w-1/3 space-y-4 border-r pr-4">
-                <AdminEventList
-                    events={events}
-                    selectedEventId={selectedEvent?.id ?? null}
-                    onSelect={handleSelectEvent}
-                    onEdit={handleSelectEvent}
-                    onDelete={deleteEvent}
-                />
-                <AdminEventForm
-                    title={formData.title || ''}
-                    description={formData.description || ''}
-                    location={formData.location || ''}
-                    image_url={formData.image_url || ''}
-                    website_url={formData.website_url || ''}
-                    max_people_per_slot={formData.max_people_per_slot}
-                    editing={Boolean(editingEventId)}
-                    saving={savingEvent}
-                    onChange={(field, value) => updateField(field, value)}
-                    onSave={editingEventId ? updateEvent : createEvent}
-                    onCancel={handleCancel}
-                />
-
-            </section>
-
+            <EventSidebar
+                events={events}
+                selectedEventId={selectedEvent?.id ?? null}
+                onSelect={handleSelectEvent}
+                onEdit={handleEditEvent}
+                onDelete={deleteEvent}
+                onCreateNew={handleCreateNew}
+            />
             <section className="w-2/3 space-y-4">
                 {selectedEvent ? (
                     <>
@@ -248,6 +254,37 @@ export default function AdminPage() {
                     />
                 )}
             </section>
+
+            <CreateEventModal
+                isOpen={createModalOpen}
+                onClose={() => setCreateModalOpen(false)}
+                formData={formData}
+                saving={savingEvent}
+                onChange={updateField}
+                onSave={async () => {
+                    await createEvent()
+                    setCreateModalOpen(false)
+                }}
+            />
+
+            <EditEventModal
+                isOpen={editModalOpen}
+                onClose={() => setEditModalOpen(false)}
+                formData={formData}
+                saving={savingEvent}
+                onChange={updateField}
+                onSave={async () => {
+                    await updateEvent()
+                    setEditModalOpen(false)
+                }}
+                onCancel={() => {
+                    resetForm()
+                    setEditingEventId(null)
+                    setEditModalOpen(false)
+                }}
+            />
+
+
         </main>
     )
 }
