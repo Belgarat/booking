@@ -39,6 +39,7 @@ export default function EventPage() {
     const [people, setPeople] = useState(1)
     const [message, setMessage] = useState('')
     const [emailError, setEmailError] = useState('')
+    const [pending, setPending] = useState(false)
 
     useEffect(() => {
         const fetchData = async () => {
@@ -69,13 +70,15 @@ export default function EventPage() {
 
     const isSlotAvailable = (slotId: string) => getRemaining(slotId) > 0
 
-    const canSubmit = selectedSlot && getRemaining(selectedSlot.id) >= people
+    const canSubmit = selectedSlot && getRemaining(selectedSlot.id) >= people && !pending
 
     const isValidEmail = (email: string) =>
         /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
 
     const submit = async () => {
         setEmailError('')
+        setPending(true)
+
 
         if (!selectedSlot || !canSubmit) return
 
@@ -99,7 +102,7 @@ export default function EventPage() {
         const result = await res.json()
 
         if (res.ok) {
-            setMessage('Prenotazione effettuata')
+            setMessage('Prenotazione effettuata, riceverai una notifica via email. Grazie!')
             setName('')
             setEmail('')
             setPhone('')
@@ -113,8 +116,10 @@ export default function EventPage() {
             const slotsRes = await fetch(`/api/events/${id}/slots`)
             const updatedSlots = await slotsRes.json()
             setSlots(updatedSlots)
+            setPending(false)
         } else {
             setMessage(result.error || 'Errore durante la prenotazione')
+            setPending(false)
         }
     }
 

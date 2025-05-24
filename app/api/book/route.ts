@@ -7,13 +7,13 @@ export async function POST(req: NextRequest) {
     // carica slot e evento relativo
     const { data: slotData } = await supabase
         .from('event_slots')
-        .select('event_id')
+        .select('event_id,datetime')
         .eq('id', slotId)
         .single()
 
     const { data: eventData } = await supabase
         .from('events')
-        .select('max_people_per_slot')
+        .select('max_people_per_slot,title,location')
         .eq('id', slotData?.event_id)
         .single()
 
@@ -38,5 +38,23 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
-    return NextResponse.json({ success: true })
+    try {
+        await fetch(process.env.NEXT_HOST + '/api/notify-subscription', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                slotId: slotId,
+                email: email,
+                name: name,
+                eventName: eventData ? eventData.title : 'Evento',
+                datetime: slotData ? slotData.datetime : 'Data e ora',
+                location: eventData ? eventData.location : 'Location',
+            }),
+        })
+        return NextResponse.json({ success: true })
+    } catch (error: Error | unknown) {
+        const { message } = error as Error;
+        return NextResponse.json({ error: 'EMAIL: ' + message }, { status: 500 })
+    }
+
 }

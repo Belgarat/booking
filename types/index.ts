@@ -11,9 +11,5 @@ export type EventSlot = {
     datetime: string
 }
 
-export type Booking = {
-    id: string
-    name: string
-    email: string
-    slot_id: string
-}
+export type EventFormField = 'title' | 'description' | 'location' | 'imageUrl' | 'websiteUrl' | 'maxPeople';
+export type EventFormValue = string | number;
