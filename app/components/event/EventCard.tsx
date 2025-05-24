@@ -1,4 +1,5 @@
 import {EventWithStats} from "@/types/enriched";
+import DragonButton from "@/app/components/common/DragonButton";
 type Props = {
     event: EventWithStats
 }
@@ -17,12 +18,6 @@ export default function EventCard({ event }: Props) {
                     Creato il: {new Date(event.created_at).toLocaleString()}
                 </p>
 
-                {event.description && (
-                    <p className="text-base text-gray-700 leading-relaxed whitespace-pre-line dark:text-gray-50">
-                        {event.description}
-                    </p>
-                )}
-
                 <div className="text-sm">
                     {event.totalMax <= 0 && (
                         <span className="text-orange-500 font-medium">Slot non ancora disponibili</span>
@@ -39,15 +34,17 @@ export default function EventCard({ event }: Props) {
                     )}
                 </div>
 
-                <div className="flex flex-wrap gap-3 pt-2">
-                    <a
+                <div className="flex flex-col flex-wrap gap-3 pt-2">
+                    <DragonButton
+                        text="Scopri l'evento e iscriviti"
                         href={`/event/${event.id}`}
+                        title="Vai alla pagina evento"
+                        showIcon={true}
                         target="_blank"
-                        className="text-sm text-blue-600 dark:text-blue-400 underline hover:text-blue-800 dark:hover:text-blue-300"
-                    >
-                        Vai alla pagina evento →
-                    </a>
-                    {event.website_url && (
+                    />
+
+
+{/*                    {event.website_url && (
                         <a
                             href={event.website_url}
                             target="_blank"
@@ -56,8 +53,15 @@ export default function EventCard({ event }: Props) {
                         >
                             🌐 Sito ufficiale
                         </a>
-                    )}
+                    )}*/}
                 </div>
+
+                {event.description && (
+                    <p className="text-base text-gray-700 leading-relaxed whitespace-pre-line dark:text-gray-50">
+                        {event.description}
+                    </p>
+                )}
+
             </div>
         </div>
     )

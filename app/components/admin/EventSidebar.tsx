@@ -2,7 +2,6 @@
 
 import AdminEventList from './AdminEventList'
 import { EventWithStats } from '@/types/enriched'
-import {PlusIcon} from "@heroicons/react/16/solid";
 
 type Props = {
     events: EventWithStats[]
@@ -28,7 +27,7 @@ export default function EventSidebar({
                     onClick={onCreateNew}
                     className="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700"
                 >
-                    <PlusIcon className="w-4 h-4 inline-block mr-1"/> Crea Evento
+                    ➕ Crea Evento
                 </button>
             </div>
 
