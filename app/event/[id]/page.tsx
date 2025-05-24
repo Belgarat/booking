@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
+import Modal, {Variant} from "@/app/components/common/Modal";
+import Link from "next/link";
 
 type Event = {
     id: string
@@ -38,8 +40,10 @@ export default function EventPage() {
     const [phone, setPhone] = useState('')
     const [people, setPeople] = useState(1)
     const [message, setMessage] = useState('')
+    const [messageVariant, setMessageVariant] = useState<Variant>('success')
     const [emailError, setEmailError] = useState('')
     const [pending, setPending] = useState(false)
+    const [open, setOpen] = useState(false)
 
     useEffect(() => {
         const fetchData = async () => {
@@ -100,14 +104,15 @@ export default function EventPage() {
         })
 
         const result = await res.json()
+        console.log('Booking result: ', result)
 
         if (res.ok) {
             setMessage('Prenotazione effettuata, riceverai una notifica via email. Grazie!')
+            setMessageVariant('success')
+            setOpen(true)
             setName('')
-            setEmail('')
             setPhone('')
             setPeople(1)
-            setSelectedSlot(null)
 
             const bookingsRes = await fetch('/api/bookings')
             const updatedBookings = await bookingsRes.json()
@@ -119,7 +124,9 @@ export default function EventPage() {
             setPending(false)
         } else {
             setMessage(result.error || 'Errore durante la prenotazione')
+            setMessageVariant('error')
             setPending(false)
+            setOpen(true)
         }
     }
 
@@ -267,9 +274,26 @@ export default function EventPage() {
                             Prenota ora
                         </button>
 
-                        {message && (
-                            <p className="mt-2 text-green-700 font-semibold">{message}</p>
-                        )}
+                        <Modal
+                            isOpen={open}
+                            onClose={() => setOpen(false)}
+                            title="Stato prenotazione"
+                            variant={messageVariant}
+                        >
+                            <p>
+                                {message}
+                            </p>
+                            <p className="mt-2">
+                                Vuoi annullare? {selectedSlot && (
+                                  <Link
+                                    href={`/event/booking/${selectedSlot.id}?email=${email}`}
+                                    className="underline text-blue-600"
+                                  >
+                                    Gestisci la tua prenotazione
+                                  </Link>
+                                )}
+                            </p>
+                        </Modal>
                     </div>
                 </div>
             </form>
