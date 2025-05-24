@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
         {
             email,
             data: {
-                link: 'https://dolomitinerd.it/event/booking/' + slotId + '?email=' + email,
+                link: process.env.NEXT_HOST + '/event/booking/' + slotId + '?email=' + email,
                 name,
                 account: { name: 'DolomitiNerd' },
                 plEvento: eventName,
