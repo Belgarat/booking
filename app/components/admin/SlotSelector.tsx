@@ -7,12 +7,19 @@ interface SlotSelectorProps {
 }
 
 const SlotSelector: React.FC<SlotSelectorProps> = ({ value, onChange, onAdd }) => {
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === 'Enter') {
+            e.preventDefault()
+            onAdd()
+        }
+    }
     return (
         <div className="flex items-center space-x-2">
             <input
                 type="datetime-local"
                 value={value}
                 onChange={(e) => onChange(e.target.value)}
+                onKeyDown={handleKeyDown}
                 className="border p-2 flex-1"
             />
             <button

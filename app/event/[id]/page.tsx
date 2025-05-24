@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import Modal, {Variant} from "@/app/components/common/Modal";
 import Link from "next/link";
+import {format} from "date-fns-tz";
+import {formatDateLabel} from "@/utils/date";
 
 type Event = {
     id: string
@@ -182,28 +184,48 @@ export default function EventPage() {
                     <p className="text-red-600">Nessuno slot disponibile al momento.</p>
                 )}
 
-                {slots
-                    .filter((s) => isSlotAvailable(s.id))
-                    .map((slot) => {
-                        const remaining = getRemaining(slot.id)
-                        return (
-                            <label
-                                key={slot.id}
-                                className="block border p-2 rounded  dark:text-gray-50  dark:hover:bg-gray-800 hover:bg-gray-100 transition cursor-pointer"
-                            >
-                                <input
-                                    type="radio"
-                                    name="slot"
-                                    value={slot.id}
-                                    checked={selectedSlot?.id === slot.id}
-                                    onChange={() => setSelectedSlot(slot)}
-                                />
-                                <span className="ml-2 dark:text-gray-50 text-sm font-medium">
-                  {new Date(slot.datetime).toLocaleString()} ({remaining} posti disponibili)
-                </span>
-                            </label>
-                        )
-                    })}
+                {Object.entries(
+                    slots
+                        .filter((s) => isSlotAvailable(s.id))
+                        .reduce((acc: Record<string, Slot[]>, slot) => {
+                            const day = formatDateLabel(slot.datetime)
+                            acc[day] = acc[day] || []
+                            acc[day].push(slot)
+                            return acc
+                        }, {})
+                ).map(([day, daySlots]) => (
+                    <details key={day} open={false} className="border border-gray-300 rounded">
+                        <summary className="cursor-pointer px-4 py-2 font-semibold bg-gray-50 dark:bg-gray-800 dark:text-white">
+                            {day}
+                        </summary>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 p-4">
+                            {daySlots.map((slot) => {
+                                const remaining = getRemaining(slot.id)
+                                const selected = selectedSlot?.id === slot.id
+
+                                return (
+                                    <label
+                                        key={slot.id}
+                                        className={`border p-2 rounded cursor-pointer transition text-sm
+              ${selected ? 'border-blue-500 bg-blue-50' : 'hover:bg-gray-100 dark:hover:bg-gray-700'}
+              dark:text-white`}
+                                    >
+                                        <input
+                                            type="radio"
+                                            name="slot"
+                                            value={slot.id}
+                                            checked={selected}
+                                            onChange={() => setSelectedSlot(slot)}
+                                            className="mr-2"
+                                        />
+                                        {format(new Date(slot.datetime), 'HH:mm')} ({remaining} posti)
+                                    </label>
+                                )
+                            })}
+                        </div>
+                    </details>
+                ))}
+
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
                     <input

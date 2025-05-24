@@ -13,6 +13,7 @@ import {useFeedback} from '@/hooks/useFeedback'
 import {useEventForm} from '@/hooks/useEventForm'
 import {API_CONFIG} from '@/config/api'
 import {FEEDBACK_CONFIG} from '@/config/feedback'
+import {toUTCISOString} from "@/utils/date";
 
 export default function AdminPage() {
     // Stati di autenticazione
@@ -143,14 +144,17 @@ export default function AdminPage() {
     const addSlot = async () => {
         if (!selectedEvent) return
 
+        // ⚠️ Converte da locale (datetime-local) a UTC string
+        const datetimeUTC = toUTCISOString(newSlot)
+
         const res = await api.makeRequest(API_CONFIG.ENDPOINTS.SLOTS, {
             method: 'POST',
-            body: JSON.stringify({eventId: selectedEvent.id, datetime: newSlot})
+            body: JSON.stringify({eventId: selectedEvent.id, datetime: datetimeUTC})
         })
 
         if (res.ok) {
             showFeedback(FEEDBACK_CONFIG.MESSAGES.SUCCESS.SLOT_ADDED)
-            setNewSlot('')
+            // setNewSlot('')
             await loadSlots(selectedEvent.id)
         }
     }
