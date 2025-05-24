@@ -47,7 +47,7 @@ export default function AdminEventListPage() {
     if (error) return <ErrorMessage message={error} />
 
     return (
-        <main className="max-w-5xl mx-auto p-6 text-gray-900 dark:text-gray-100">
+        <main className="max-w-8xl mx-auto p-6 text-gray-900 dark:text-gray-100">
             <h1 className="text-3xl font-bold mb-6">📋 Lista Eventi</h1>
             <EventList events={events}/>
             <PageFooterLink href="/admin">↗ Vai alla pagina admin</PageFooterLink>
