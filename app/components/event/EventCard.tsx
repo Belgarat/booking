@@ -9,7 +9,7 @@ export default function EventCard({ event }: Props) {
             <img
                 src={event.image_url || `https://placehold.co/600x300?text=Evento`}
                 alt={event.title}
-                className="w-full h-48 object-cover"
+                className="w-full h-84 object-cover"
             />
             <div className="p-4 space-y-2">
                 <h2 className="text-xl font-semibold">{event.title}</h2>
