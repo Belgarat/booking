@@ -288,6 +288,19 @@ export default function EventPage() {
                     </div>
 
                     <div className="md:col-span-2">
+                        <div className="text-sm space-y-2">
+                            <label className="flex items-start space-x-2">
+                                <input
+                                    type="checkbox"
+                                    required
+                                    className="mt-1"
+                                />
+                                <span>
+                                  Dichiaro di aver letto e compreso l’<Link href="/privacy" className="underline text-blue-600" target="_blank">informativa sulla privacy</Link> e acconsento al trattamento dei dati per la gestione della prenotazione.
+                                </span>
+                            </label>
+                        </div>
+
                         <button
                             type="submit"
                             className="bg-green-600 hover:bg-green-700 transition text-white px-6 py-2 rounded font-medium disabled:opacity-50 w-full"
@@ -315,6 +328,7 @@ export default function EventPage() {
                                   </Link>
                                 )}
                             </p>
+                            <p>I tuoi dati saranno trattati nel rispetto della normativa vigente.</p>
                         </Modal>
                     </div>
                 </div>
