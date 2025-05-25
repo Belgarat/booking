@@ -1,7 +1,9 @@
-// components/SlotList.tsx
+'use client'
+
 import { ArrowDownIcon, ArrowUpIcon, TrashIcon } from "@heroicons/react/16/solid";
 import { useState } from "react";
-import {SlotWithBookings} from "@/types/enriched";
+import { SlotWithBookings } from "@/types/enriched";
+import { formatDateToItalianLocale } from "@/utils/date";
 
 interface SlotListProps {
     slots: SlotWithBookings[];
@@ -13,60 +15,80 @@ export default function SlotList({ slots, maxPeoplePerSlot, onDeleteSlot }: Slot
     const [expandedSlotId, setExpandedSlotId] = useState<string | null>(null);
 
     return (
-        <ul className="space-y-2">
-            <h2 className="text-xl font-bold">Lista slot:</h2>
+        <section className="space-y-4">
+            <h2 className="text-xl font-bold">Lista slot</h2>
+
             {slots.map((s) => {
                 const booked = s.booked || 0;
-                const max = maxPeoplePerSlot;
-                const remaining = max - booked;
+                const remaining = maxPeoplePerSlot - booked;
                 const isOpen = expandedSlotId === s.id;
 
+                const isFull = remaining <= 0;
+                const slotLabel = formatDateToItalianLocale(s.datetime);
+
                 return (
-                    <li key={s.id} className="border p-3 rounded space-y-2">
+                    <div key={s.id} className="border rounded-lg overflow-hidden">
                         <div
-                            className="flex justify-between items-center cursor-pointer"
+                            className={`flex justify-between items-center px-4 py-3 cursor-pointer ${
+                                isFull ? 'bg-red-50 dark:bg-red-900' : 'hover:bg-gray-50 dark:hover:bg-gray-700'
+                            }`}
                             onClick={() => setExpandedSlotId(isOpen ? null : s.id)}
+                            role="button"
+                            aria-expanded={isOpen}
                         >
                             <div>
-                                <div className="font-medium">{new Date(s.datetime).toLocaleString()}</div>
-                                <div className="text-sm text-gray-600">
-                                    {booked} iscritti / {max} posti disponibili ({remaining} rimasti)
-                                </div>
+                                <p className="font-medium text-gray-800 dark:text-white">{slotLabel}</p>
+                                <p className="text-sm text-gray-600 dark:text-gray-300">
+                                    {booked} iscritti / {maxPeoplePerSlot} posti ({remaining} rimasti)
+                                </p>
                             </div>
+
                             <div className="flex items-center gap-2">
                                 <button
                                     onClick={(e) => {
                                         e.stopPropagation();
                                         onDeleteSlot(s.id);
                                     }}
-                                    className="text-red-500 text-sm"
+                                    title="Elimina slot"
+                                    className="text-red-500 hover:text-red-700"
                                 >
-                                    <TrashIcon className="w-4 h-4" aria-hidden="true" />
+                                    <TrashIcon className="w-5 h-5" />
                                 </button>
-                                <span className="text-gray-500 flex flex-col items-center">
-                                    Dettagli {isOpen ? <ArrowUpIcon className="w-4 h-4"/> : <ArrowDownIcon className="w-4 h-4"/>}
+
+                                <span className="text-sm text-gray-500 flex items-center gap-1">
+                                    {isOpen ? 'Nascondi' : 'Mostra'}{" "}
+                                    {isOpen ? (
+                                        <ArrowUpIcon className="w-4 h-4" />
+                                    ) : (
+                                        <ArrowDownIcon className="w-4 h-4" />
+                                    )}
                                 </span>
                             </div>
                         </div>
 
                         {isOpen && s.bookings && s.bookings.length > 0 && (
-                            <div className="mt-2 bg-gray-50 dark:bg-gray-800 rounded p-3 space-y-1 text-sm">
-                                <p className="font-medium text-gray-700 dark:text-gray-200">Prenotazioni:</p>
+                            <div className="bg-gray-50 dark:bg-gray-800 px-4 py-3 text-sm">
+                                <p className="font-semibold mb-2 text-gray-700 dark:text-gray-200">Prenotazioni:</p>
                                 <ul className="divide-y divide-gray-200 dark:divide-gray-700">
                                     {s.bookings.map((b) => (
-                                        <li key={b.id} className="py-1 flex flex-col md:flex-row md:items-center md:gap-4">
+                                        <li
+                                            key={b.id}
+                                            className="py-2 grid sm:grid-cols-2 md:grid-cols-3 gap-2 text-gray-700 dark:text-gray-100"
+                                        >
                                             <span className="font-semibold">{b.name}</span>
-                                            <span className="text-gray-500">{b.email}</span>
-                                            {b.phone && <span className="text-gray-500">📞 {b.phone}</span>}
-                                            <span>👥 {b.people} partecipant{b.people > 1 ? 'i' : 'e'}</span>
+                                            <span>{b.email}</span>
+                                            <span>
+                                                👥 {b.people} partecipant{b.people > 1 ? 'i' : 'e'}
+                                                {b.phone && <span className="ml-2">📞 {b.phone}</span>}
+                                            </span>
                                         </li>
                                     ))}
                                 </ul>
                             </div>
                         )}
-                    </li>
+                    </div>
                 );
             })}
-        </ul>
+        </section>
     );
 }

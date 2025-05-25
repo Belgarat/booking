@@ -216,6 +216,11 @@ export default function AdminPage() {
         )
     }
 
+    const slotsWithMax = slots.map(slot => ({
+        ...slot,
+        max_people_per_slot: selectedEvent?.max_people_per_slot ?? 0
+    }))
+
     return (
         <main className="flex p-6 space-x-6">
             <EventSidebar
@@ -225,6 +230,7 @@ export default function AdminPage() {
                 onEdit={handleEditEvent}
                 onDelete={deleteEvent}
                 onCreateNew={handleCreateNew}
+                slots={slotsWithMax}
             />
             <section className="w-2/3 space-y-4">
                 {selectedEvent ? (

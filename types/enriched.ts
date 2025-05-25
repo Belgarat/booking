@@ -11,4 +11,5 @@ export type EventWithStats = EventBase & {
 export type SlotWithBookings = SlotBase & {
     booked: number
     bookings: Booking[]
+    max_people_per_slot?: number
 }
