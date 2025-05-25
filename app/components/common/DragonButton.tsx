@@ -23,7 +23,7 @@ export default function DragonButton({
             href={href}
             target={target}
             title={title}
-            className="group inline-flex items-center justify-center gap-2 px-5 py-3 text-sm font-medium text-white bg-primary rounded-lg shadow hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-all duration-200 dark:bg-primary dark:hover:bg-orange-600"
+            className="group inline-flex items-center justify-center gap-2 px-5 py-3 text-sm font-medium border text-white bg-primary rounded-lg shadow hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-all duration-200 dark:bg-primary dark:hover:bg-orange-600"
         >
       <span className="group-hover:text-white transition-colors duration-200">
         {text}
