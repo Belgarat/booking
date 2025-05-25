@@ -1,6 +1,7 @@
 // utils/date.ts
 import { format, toZonedTime } from 'date-fns-tz'
 import { it } from 'date-fns/locale'
+import {isValid, parseISO} from "date-fns";
 
 const ITALY_TIMEZONE = 'Europe/Rome'
 
@@ -8,12 +9,16 @@ const ITALY_TIMEZONE = 'Europe/Rome'
  * Converte un'ora UTC in una stringa leggibile in italiano (es. 21 giugno 2025 alle 18:00)
  */
 export function formatDateToItalianLocale(datetime: string | Date): string {
-    const zoned = toZonedTime(datetime, ITALY_TIMEZONE)
+    const date = typeof datetime === 'string' ? parseISO(datetime) : datetime
+    if (!isValid(date)) return 'Data non valida'
+
+    const zoned = toZonedTime(date, ITALY_TIMEZONE)
     return format(zoned, "d MMMM yyyy 'alle' HH:mm", {
         timeZone: ITALY_TIMEZONE,
         locale: it,
     })
 }
+
 
 /**
  * Converte una stringa locale da input type="datetime-local" in UTC ISO string

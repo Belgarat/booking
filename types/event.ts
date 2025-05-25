@@ -30,4 +30,5 @@ export type Booking = {
         event_id?: string,
         datetime: string
     }
+    checked_in?: boolean;
 }

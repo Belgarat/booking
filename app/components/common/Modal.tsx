@@ -16,6 +16,7 @@ type ModalProps = {
     title?: string
     variant?: Variant
     children: ReactNode
+    wide?: boolean
 }
 
 const variantStyles: Record<Variant, string> = {
@@ -38,6 +39,7 @@ export default function Modal({
                                   title,
                                   variant = 'info',
                                   children,
+                                  wide = false,
                               }: ModalProps) {
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
@@ -53,7 +55,11 @@ export default function Modal({
 
     return (
         <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center px-4">
-            <div className="bg-white dark:bg-gray-900 rounded-lg shadow-lg w-full max-w-md relative p-6 space-y-4">
+            <div
+                className={`bg-white dark:bg-gray-900 rounded-lg shadow-lg w-full max-h-[90vh] overflow-y-auto p-6 space-y-4 ${
+                    wide ? 'max-w-4xl' : 'max-w-md'
+                }`}
+            >
                 {/* Close button */}
                 <button
                     onClick={onClose}
@@ -70,7 +76,9 @@ export default function Modal({
                 </div>
 
                 {/* Content */}
-                <div className="text-gray-700 dark:text-gray-200 text-sm">{children}</div>
+                <div className="text-gray-700 dark:text-gray-200 text-sm">
+                    {children}
+                </div>
 
                 {/* Footer */}
                 <div className="flex justify-end">
