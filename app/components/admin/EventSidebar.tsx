@@ -50,14 +50,18 @@ export default function EventSidebar({
         return Array.from(map.values())
     }, [slots])
 
-    // ➕ Giorni con slot pieni (in rosso) e parziali (in blu)
+
     const fullDays = slotsByDay
-        .filter(d => d.full === d.total)
-        .map(d => d.date)
+        .filter((d) => d.full === d.total)
+        .map((d) => d.date)
 
     const partialDays = slotsByDay
-        .filter(d => d.full < d.total)
-        .map(d => d.date)
+        .filter((d) => d.full > 0 && d.full < d.total)
+        .map((d) => d.date)
+
+    const availableDays = slotsByDay
+        .filter((d) => d.full === 0)
+        .map((d) => d.date)
 
     return (
         <section className="w-1/3 space-y-6 border-r pr-6">
@@ -86,16 +90,28 @@ export default function EventSidebar({
                     selected={undefined}
                     modifiers={{
                         full: fullDays,
-                        partial: partialDays
+                        partial: partialDays,
+                        available: availableDays,
                     }}
                     modifiersClassNames={{
-                        full: 'bg-red-200 text-red-800',
-                        partial: 'bg-blue-200 text-blue-800'
+                        full: 'bg-red-300 text-red-900 font-semibold',
+                        partial: 'bg-yellow-200 text-yellow-900',
+                        available: 'bg-green-200 text-green-800',
                     }}
                 />
-                <div className="mt-2 flex items-center gap-2 text-xs text-gray-500">
-                    <span className="inline-block w-3 h-3 bg-blue-200 rounded-sm"></span> Disponibili
-                    <span className="inline-block w-3 h-3 bg-red-200 rounded-sm"></span> Pieni
+                <div className="mt-2 flex flex-wrap gap-3 text-xs text-gray-500">
+                    <div className="flex items-center gap-1">
+                        <span className="inline-block w-3 h-3 bg-green-200 rounded-sm"></span>
+                        Solo disponibili
+                    </div>
+                    <div className="flex items-center gap-1">
+                        <span className="inline-block w-3 h-3 bg-yellow-200 rounded-sm"></span>
+                        Prenotati
+                    </div>
+                    <div className="flex items-center gap-1">
+                        <span className="inline-block w-3 h-3 bg-red-300 rounded-sm"></span>
+                        Completamente pieni
+                    </div>
                 </div>
             </div>
         </section>
