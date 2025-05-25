@@ -1,7 +1,5 @@
-'use client'
-
 import { ArrowDownIcon, ArrowUpIcon, TrashIcon } from "@heroicons/react/16/solid";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { SlotWithBookings } from "@/types/enriched";
 import { formatDateToItalianLocale } from "@/utils/date";
 
@@ -13,16 +11,35 @@ interface SlotListProps {
 
 export default function SlotList({ slots, maxPeoplePerSlot, onDeleteSlot }: SlotListProps) {
     const [expandedSlotId, setExpandedSlotId] = useState<string | null>(null);
+    const [showOnlyWithBookings, setShowOnlyWithBookings] = useState(false);
+
+    const filteredSlots = useMemo(() => {
+        return showOnlyWithBookings ? slots.filter(s => s.bookings && s.bookings.length > 0) : slots;
+    }, [showOnlyWithBookings, slots]);
 
     return (
         <section className="space-y-4">
-            <h2 className="text-xl font-bold">Lista slot</h2>
+            <div className="flex items-center justify-between">
+                <h2 className="text-xl font-bold">Lista slot</h2>
+                <label className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-300">
+                    <input
+                        type="checkbox"
+                        checked={showOnlyWithBookings}
+                        onChange={() => setShowOnlyWithBookings(!showOnlyWithBookings)}
+                        className="form-checkbox rounded text-blue-600"
+                    />
+                    <span>Solo con prenotazioni</span>
+                </label>
+            </div>
 
-            {slots.map((s) => {
+            {filteredSlots.length === 0 && (
+                <p className="text-gray-500 text-sm italic">Nessuno slot da mostrare.</p>
+            )}
+
+            {filteredSlots.map((s) => {
                 const booked = s.booked || 0;
                 const remaining = maxPeoplePerSlot - booked;
                 const isOpen = expandedSlotId === s.id;
-
                 const isFull = remaining <= 0;
                 const slotLabel = formatDateToItalianLocale(s.datetime);
 
