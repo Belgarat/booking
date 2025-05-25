@@ -46,6 +46,8 @@ export default function EventPage() {
     const [emailError, setEmailError] = useState('')
     const [pending, setPending] = useState(false)
     const [open, setOpen] = useState(false)
+    const [privacyAccepted, setPrivacyAccepted] = useState(false)
+
 
     useEffect(() => {
         const fetchData = async () => {
@@ -74,9 +76,15 @@ export default function EventPage() {
         return (event?.max_people_per_slot || 0) - bookedForSlot
     }
 
+    const isSlotFull = selectedSlot && getRemaining(selectedSlot.id) < people
+
     const isSlotAvailable = (slotId: string) => getRemaining(slotId) > 0
 
-    const canSubmit = selectedSlot && getRemaining(selectedSlot.id) >= people && !pending
+    const canSubmit =
+        selectedSlot &&
+        getRemaining(selectedSlot.id) >= people &&
+        !pending &&
+        privacyAccepted
 
     const isValidEmail = (email: string) =>
         /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
@@ -282,7 +290,7 @@ export default function EventPage() {
                             className="border p-2 w-full rounded dark:bg-gray-50"
                             required
                         />
-                        {!canSubmit && selectedSlot && (
+                        {isSlotFull && !pending && !open && (
                             <p className="text-red-600 text-sm mt-1">
                                 Posti insufficienti nello slot selezionato.
                             </p>
@@ -296,6 +304,8 @@ export default function EventPage() {
                                     type="checkbox"
                                     required
                                     className="mt-1"
+                                    checked={privacyAccepted}
+                                    onChange={(e) => setPrivacyAccepted(e.target.checked)}
                                 />
                                 <span>
                                   Dichiaro di aver letto e compreso l’<Link href="/privacy" className="underline text-blue-600" target="_blank">informativa sulla privacy</Link> e acconsento al trattamento dei dati per la gestione della prenotazione.
@@ -313,7 +323,10 @@ export default function EventPage() {
 
                         <Modal
                             isOpen={open}
-                            onClose={() => setOpen(false)}
+                            onClose={() => {
+                                if (selectedSlot) setSelectedSlot(null);
+                                setOpen(false)
+                            }}
                             title="Stato prenotazione"
                             variant={messageVariant}
                         >
