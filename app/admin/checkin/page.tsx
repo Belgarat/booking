@@ -177,7 +177,7 @@ export default function AdminCheckinPage() {
                 {/* Sezione Selezione Data */}
                 <section className="bg-gray-50 p-6 rounded-lg shadow-inner">
                     <h2 className="text-xl font-semibold text-gray-800 mb-4">Seleziona una Data</h2>
-                    <div className="flex justify-center">
+                    <div id="daypicker" className="flex justify-center">
                         <DayPicker
                             mode="single"
                             selected={selectedDate}
@@ -259,15 +259,27 @@ export default function AdminCheckinPage() {
                             )}
 
                             <ul className="divide-y divide-gray-200 text-sm">
-                                {paginatedSlots.map(slot => (
-                                    <li key={slot.id} className="py-2">
-                                        <p className="font-medium text-gray-800">
-                                            {format(parseISO(slot.event_slots.datetime), 'dd MMM yyyy – HH:mm', { locale: it })}
-                                        </p>
-                                        <p className="text-gray-600">{slot.name} – {slot.people} partecipant{slot.people > 1 ? 'i' : 'e'}</p>
-                                    </li>
-                                ))}
+                                {paginatedSlots.map(slot => {
+                                    const slotDate = parseISO(slot.event_slots.datetime)
+                                    return (
+                                        <li
+                                            key={slot.id}
+                                            className="py-2 cursor-pointer hover:bg-gray-100 rounded transition"
+                                            onClick={() => {
+                                                setSelectedDate(slotDate)
+                                                // opzionale: scroll al DayPicker
+                                                document.getElementById('daypicker')?.scrollIntoView({ behavior: 'smooth' })
+                                            }}
+                                        >
+                                            <p className="font-medium text-gray-800">
+                                                {format(slotDate, 'dd MMM yyyy – HH:mm', { locale: it })}
+                                            </p>
+                                            <p className="text-gray-600">{slot.name} – {slot.people} partecipant{slot.people > 1 ? 'i' : 'e'}</p>
+                                        </li>
+                                    )
+                                })}
                             </ul>
+
 
                             {/* Paginazione */}
                             {totalPages > 1 && (
