@@ -1,8 +1,8 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import {useState, useEffect, useCallback, useMemo} from 'react'
 import { it } from 'date-fns/locale'
-import { format } from 'date-fns'
+import {format, isAfter, parseISO, startOfDay} from 'date-fns'
 import { DayPicker } from 'react-day-picker'
 import 'react-day-picker/dist/style.css' // Stili base del DayPicker
 
@@ -20,11 +20,36 @@ export default function AdminCheckinPage() {
     const [slots, setSlots] = useState<BookingWithSlot[]>([])
     const [modalOpen, setModalOpen] = useState(false)
     const [selectedSlot, setSelectedSlot] = useState<BookingWithSlot | null>(null)
+    const [eventDates, setEventDates] = useState<Date[]>([])
+    const [currentPage, setCurrentPage] = useState(1)
+    const [futureSlots, setFutureSlots] = useState<BookingWithSlot[]>([])
+
+    const pageSize = 5
+
+
 
     const { feedback, showFeedback } = useFeedback()
     const api = useApi(password, showFeedback)
 
     const [refreshTrigger, setRefreshTrigger] = useState(0);
+
+    const upcomingSlots = useMemo(() => {
+        return futureSlots
+            .filter(slot => {
+                const slotDate = parseISO(slot.event_slots?.datetime || '')
+                return isAfter(slotDate, startOfDay(new Date()))
+            })
+            .sort((a, b) =>
+                parseISO(a.event_slots.datetime).getTime() - parseISO(b.event_slots.datetime).getTime()
+            )
+    }, [futureSlots])
+
+    const totalPages = Math.ceil(upcomingSlots.length / pageSize)
+
+    const paginatedSlots = useMemo(() => {
+        const start = (currentPage - 1) * pageSize
+        return upcomingSlots.slice(start, start + pageSize)
+    }, [currentPage, upcomingSlots])
 
     const fetchBookings = useCallback(async () => {
         if (!authenticated || !selectedDate) {
@@ -64,6 +89,46 @@ export default function AdminCheckinPage() {
     useEffect(() => {
         fetchBookings();
     }, [selectedDate, authenticated, refreshTrigger, fetchBookings]);
+
+    useEffect(() => {
+        const loadUpcomingSlots = async () => {
+            const res = await api.makeRequest('/api/admin/checkin/upcoming')
+            if (res.ok) {
+                const data = await res.json()
+                setFutureSlots(data)
+            }
+        }
+
+        if (authenticated) loadUpcomingSlots()
+    }, [authenticated])
+
+
+    useEffect(() => {
+        const loadEventDates = async () => {
+            const res = await api.makeRequest('/api/admin/checkin/days')
+            if (!res.ok) return
+
+            const raw = await res.json()
+            const dateStrings = Array.from(
+                new Set(
+                    raw
+                        .filter((d: { datetime: string }) => d.datetime)
+                        .map((d: { datetime: string }) =>
+                            parseISO(d.datetime).toDateString()
+                        )
+                )
+            ) as string[]
+
+            const dates = dateStrings.map((str) => new Date(str))
+            console.log('Dates', dates)
+
+
+            setEventDates(dates)
+        }
+
+        if (authenticated) loadEventDates()
+    }, [authenticated])
+
 
     if (!authenticated) {
         return (
@@ -179,7 +244,52 @@ export default function AdminCheckinPage() {
                                 // Stili per le intestazioni dei giorni della settimana
                                 head_cell: "text-gray-500 text-sm font-medium",
                             }}
+                            modifiers={{
+                                hasEvents: eventDates
+                            }}
+                            modifiersClassNames={{
+                                hasEvents: 'relative after:content-[""] after:absolute after:bottom-1 after:left-1/2 after:-translate-x-1/2 after:w-1.5 after:h-1.5 after:bg-green-600 after:rounded-full'
+                            }}
                         />
+                        <div className="md:w-1/2 bg-white p-4 rounded shadow space-y-4">
+                            <h3 className="font-semibold text-gray-700">Prossimi slot con prenotazioni</h3>
+
+                            {paginatedSlots.length === 0 && (
+                                <p className="text-sm text-gray-500">Nessuno slot disponibile.</p>
+                            )}
+
+                            <ul className="divide-y divide-gray-200 text-sm">
+                                {paginatedSlots.map(slot => (
+                                    <li key={slot.id} className="py-2">
+                                        <p className="font-medium text-gray-800">
+                                            {format(parseISO(slot.event_slots.datetime), 'dd MMM yyyy – HH:mm', { locale: it })}
+                                        </p>
+                                        <p className="text-gray-600">{slot.name} – {slot.people} partecipant{slot.people > 1 ? 'i' : 'e'}</p>
+                                    </li>
+                                ))}
+                            </ul>
+
+                            {/* Paginazione */}
+                            {totalPages > 1 && (
+                                <div className="flex justify-between text-sm">
+                                    <button
+                                        disabled={currentPage === 1}
+                                        onClick={() => setCurrentPage(prev => prev - 1)}
+                                        className="text-blue-600 disabled:text-gray-400"
+                                    >
+                                        ← Indietro
+                                    </button>
+                                    <span>Pagina {currentPage} di {totalPages}</span>
+                                    <button
+                                        disabled={currentPage === totalPages}
+                                        onClick={() => setCurrentPage(prev => prev + 1)}
+                                        className="text-blue-600 disabled:text-gray-400"
+                                    >
+                                        Avanti →
+                                    </button>
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </section>
 
