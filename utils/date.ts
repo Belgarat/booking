@@ -9,7 +9,10 @@ const ITALY_TIMEZONE = 'Europe/Rome'
  */
 export function formatDateToItalianLocale(datetime: string | Date): string {
     const zoned = toZonedTime(datetime, ITALY_TIMEZONE)
-    return format(zoned, "d MMMM yyyy 'alle' HH:mm", { timeZone: ITALY_TIMEZONE })
+    return format(zoned, "d MMMM yyyy 'alle' HH:mm", {
+        timeZone: ITALY_TIMEZONE,
+        locale: it,
+    })
 }
 
 /**

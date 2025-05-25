@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { MailerSend, Recipient, EmailParams } from 'mailersend'
+import {formatDateToItalianLocale} from "@/utils/date";
 
 export const runtime = 'nodejs'
 
@@ -36,7 +37,7 @@ export async function POST(req: NextRequest) {
                 name,
                 account: { name: 'DolomitiNerd' },
                 plEvento: eventName,
-                plDataOra: datetime,
+                plDataOra: formatDateToItalianLocale(datetime),
                 plLocation: location,
                 support_email: supportEmail,
             },
