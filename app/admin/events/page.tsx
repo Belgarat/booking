@@ -48,7 +48,10 @@ export default function AdminEventListPage() {
 
     return (
         <main className="max-w-8xl mx-auto p-6 text-gray-900 dark:text-gray-100">
-            <h1 className="text-3xl font-bold mb-6">📋 Lista Eventi</h1>
+            <h1 className="text-3xl font-bold mb-6 flex items-center gap-3">
+                <img src="/Logo-a-colori-1k.png" alt="DolomitiNerd Logo" className="h-8"/>
+                Eventi DolomitiNerd
+            </h1>
             <EventList events={events}/>
             <PageFooterLink href="/admin">↗ Vai alla pagina admin</PageFooterLink>
         </main>
