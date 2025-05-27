@@ -12,6 +12,9 @@ import { useApi } from '@/hooks/useApi'
 import { BookingWithSlot } from '@/types/enriched' // Assicurati che il tipo sia definito correttamente
 import CheckinModal from '@/app/components/admin/checkin/CheckinModal'
 import CheckinSlotList from "@/app/components/admin/checkin/CheckSlotList";
+import Link from "next/link";
+import {ArrowPathIcon} from "@heroicons/react/24/solid";
+import FullScreenSpinner from "@/app/components/common/FullScreenSpinner";
 
 export default function AdminCheckinPage() {
     const [password, setPassword] = useState('')
@@ -23,10 +26,9 @@ export default function AdminCheckinPage() {
     const [eventDates, setEventDates] = useState<Date[]>([])
     const [currentPage, setCurrentPage] = useState(1)
     const [futureSlots, setFutureSlots] = useState<BookingWithSlot[]>([])
+    const [loading, setLoading] = useState(false)
 
     const pageSize = 5
-
-
 
     const { feedback, showFeedback } = useFeedback()
     const api = useApi(password, showFeedback)
@@ -52,6 +54,7 @@ export default function AdminCheckinPage() {
     }, [currentPage, upcomingSlots])
 
     const fetchBookings = useCallback(async () => {
+        setLoading(true);
         if (!authenticated || !selectedDate) {
             setSlots([]);
             return;
@@ -84,6 +87,7 @@ export default function AdminCheckinPage() {
             showFeedback({ text: errorData.message || 'Errore nel caricamento delle prenotazioni', variant: 'error' })
             setSlots([]);
         }
+        setLoading(false);
     }, [authenticated, selectedDate, api, showFeedback, modalOpen, selectedSlot]); // Dipendenze per useCallback
 
     useEffect(() => {
@@ -103,28 +107,31 @@ export default function AdminCheckinPage() {
     }, [authenticated])
 
 
+    const loadEventDates = async () => {
+        setLoading(true);
+        const res = await api.makeRequest('/api/admin/checkin/days')
+        if (!res.ok) return
+
+        const raw = await res.json()
+        const dateStrings = Array.from(
+            new Set(
+                raw
+                    .filter((d: { datetime: string }) => d.datetime)
+                    .map((d: { datetime: string }) =>
+                        parseISO(d.datetime).toDateString()
+                    )
+            )
+        ) as string[]
+
+        const dates = dateStrings.map((str) => new Date(str))
+        console.log('Dates', dates)
+
+
+        setEventDates(dates)
+        setLoading(false);
+    }
+
     useEffect(() => {
-        const loadEventDates = async () => {
-            const res = await api.makeRequest('/api/admin/checkin/days')
-            if (!res.ok) return
-
-            const raw = await res.json()
-            const dateStrings = Array.from(
-                new Set(
-                    raw
-                        .filter((d: { datetime: string }) => d.datetime)
-                        .map((d: { datetime: string }) =>
-                            parseISO(d.datetime).toDateString()
-                        )
-                )
-            ) as string[]
-
-            const dates = dateStrings.map((str) => new Date(str))
-            console.log('Dates', dates)
-
-
-            setEventDates(dates)
-        }
 
         if (authenticated) loadEventDates()
     }, [authenticated])
@@ -167,6 +174,9 @@ export default function AdminCheckinPage() {
         setRefreshTrigger(prev => prev + 1);
     }
 
+    if (loading) {
+        return <FullScreenSpinner text="Carico i dati..."/>
+    }
     return (
         <main className="min-h-screen bg-gray-50 p-6 sm:p-8">
             <div className="max-w-6xl mx-auto bg-white rounded-lg shadow-xl p-6 sm:p-8 space-y-8">
@@ -252,7 +262,16 @@ export default function AdminCheckinPage() {
                             }}
                         />
                         <div className="md:w-1/2 bg-white p-4 rounded shadow space-y-4">
-                            <h3 className="font-semibold text-gray-700">Prossimi slot con prenotazioni</h3>
+                            <div className="flex justify-between items-center mb-4">
+                                <h3 className="font-semibold text-gray-700">Prossimi slot con prenotazioni</h3>
+                                <Link
+                                    href="#"
+                                    onClick={() => loadEventDates()}
+                                    className="inline-flex items-center text-sm text-blue-600 hover:text-blue-800"
+                                >
+                                    <ArrowPathIcon name="refresh" className="w-4 h-4 mr-2" />
+                                </Link>
+                            </div>
 
                             {paginatedSlots.length === 0 && (
                                 <p className="text-sm text-gray-500">Nessuno slot disponibile.</p>
