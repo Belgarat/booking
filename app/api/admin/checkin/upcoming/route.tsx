@@ -15,8 +15,12 @@ export async function GET(req: Request) {
         .select(`
     id, name, email, phone, people, checked_in,
     event_slots (
-      id,
-      datetime
+        id,
+        datetime,
+        event_id,
+        events (
+            title
+        )
     )
   `)
         .gte('event_slots.datetime', today)

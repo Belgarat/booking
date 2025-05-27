@@ -87,6 +87,9 @@ export default function CheckinModal({ isOpen, onClose, slot, password }: Props)
                                 Slot: {slotDateTime ? slotDateTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'N/A'}
                                 {slotDateTime && <span className="text-base font-normal text-gray-600 ml-2">({slotDateTime.toLocaleDateString('it-IT')})</span>}
                             </p>
+                            <p className="text-gray-500 text-sm italic">
+                                {slot.event_slots?.events?.title || 'Evento senza nome'}
+                            </p>
                             <p className="text-base text-gray-700 mb-1">
                                 Persone prenotate: <span className="font-semibold text-lg">{peopleCount}</span>
                             </p>

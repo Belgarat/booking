@@ -14,7 +14,7 @@ export async function GET(req: NextRequest) {
 
     const start = new Date(date)
     const end = endOfDay(start)
-    console.log(start, end)
+
     const { data, error } = await supabase
         .from('bookings')
         .select(`
@@ -24,16 +24,21 @@ export async function GET(req: NextRequest) {
             phone,
             people,
             checked_in,
-            event_slots!inner (datetime) 
-          `)
+            event_slots!inner (
+                id,
+                datetime,
+                event_id,
+                events (
+                    title
+                )
+            )
+        `)
         .gte('event_slots.datetime', start.toISOString())
-        .lt('event_slots.datetime', end.toISOString());
+        .lt('event_slots.datetime', end.toISOString())
 
-
-    console.log('Slot: ', data)
     if (error) {
         return NextResponse.json({ error: error.message }, { status: 500 })
     }
-
+    console.log(data)
     return NextResponse.json(data)
 }

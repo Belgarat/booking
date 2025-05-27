@@ -45,6 +45,9 @@ export default function CheckinSlotList({ slots, onSelectSlot }: Props) {
                         >
                             <div className="flex justify-between items-start">
                                 <div className="flex-grow">
+                                    <p className="text-gray-500 text-sm italic">
+                                        {booking.event_slots?.events?.title || 'Evento senza nome'}
+                                    </p>
                                     <p className="font-semibold text-lg text-gray-900">{booking.name}</p>
                                     <p className="text-sm text-indigo-600">
                                         Orario Slot: {formatDateToItalianLocale(booking.event_slots.datetime)}

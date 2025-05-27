@@ -177,7 +177,7 @@ export default function AdminCheckinPage() {
                 {/* Sezione Selezione Data */}
                 <section className="bg-gray-50 p-6 rounded-lg shadow-inner">
                     <h2 className="text-xl font-semibold text-gray-800 mb-4">Seleziona una Data</h2>
-                    <div id="daypicker" className="flex justify-center">
+                    <div id="daypicker" className="flex flex-wrap justify-center">
                         <DayPicker
                             mode="single"
                             selected={selectedDate}
@@ -271,6 +271,9 @@ export default function AdminCheckinPage() {
                                                 document.getElementById('daypicker')?.scrollIntoView({ behavior: 'smooth' })
                                             }}
                                         >
+                                            <p className="text-gray-500 text-sm italic">
+                                                {slot.event_slots?.events?.title || 'Evento senza nome'}
+                                            </p>
                                             <p className="font-medium text-gray-800">
                                                 {format(slotDate, 'dd MMM yyyy – HH:mm', { locale: it })}
                                             </p>

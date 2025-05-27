@@ -22,6 +22,12 @@ export type BookingWithSlot = {
     people: number
     checked_in: boolean
     event_slots: {
+        id: string
         datetime: string
+        event_id?: string
+        events?: {
+            title: string
+        }
     }
 }
+
