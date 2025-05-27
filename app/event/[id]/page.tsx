@@ -144,6 +144,18 @@ export default function EventPage() {
 
     return (
         <main className="max-w-3xl mx-auto p-4 md:p-8 space-y-10 text-gray-800">
+            <div className="max-w-3xl mx-auto mb-4 px-4">
+                <Link
+                    href="/"
+                    className="inline-flex items-center text-sm text-blue-600 hover:text-blue-800"
+                >
+                    <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+                    </svg>
+                    Torna alla lista eventi
+                </Link>
+            </div>
+
             {event.image_url && (
                 <div className="relative h-64 w-full rounded-lg overflow-hidden shadow">
                     <img
