@@ -1,7 +1,7 @@
 // hooks/useLoaderFetch.ts
 import { useState } from 'react'
 
-export function useLoaderFetch<T = any>() {
+export function useLoaderFetch<T = unknown>() {
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
     const [data, setData] = useState<T | null>(null)
