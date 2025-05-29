@@ -9,7 +9,7 @@ type Props = {
 
 export default function AdminLoginForm({ password, setPassword, login, message }: Props) {
     return (
-        <main className="p-6 max-w-sm mx-auto space-y-4">
+        <main className="p-6 max-w-sm mx-auto space-y-4 dark:bg-gray-800">
             <h1 className="text-2xl font-bold">Accesso Admin</h1>
             <input
                 type="password"
