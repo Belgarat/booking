@@ -28,7 +28,7 @@ export default function AdminEventListPage() {
     useEffect(() => {
         const fetchEvents = async () => {
             try {
-                const res = await fetch('/api/events')
+                const res = await fetch('/api/events?filter=new')
                 if (!res.ok) throw new Error('Errore nel recupero eventi')
                 const data = await res.json()
                 setEvents(data)

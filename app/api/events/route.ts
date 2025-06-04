@@ -1,8 +1,13 @@
-import { NextResponse } from 'next/server'
+import {NextRequest, NextResponse} from 'next/server'
 import { supabase } from '@/libs/supabase'
+type FILTER_VALUE = "new" | "all";
 
-export async function GET() {
-    const { data, error } = await supabase
+export async function GET(req: NextRequest) {
+    const { searchParams } = new URL(req.url);
+    const filterParam = searchParams.get('filter') || 'all';
+    const filter: FILTER_VALUE = filterParam === 'new' ? 'new' : 'all';
+    const today = new Date().toISOString().split('T')[0];
+    let q = supabase
         .from('events')
         .select(`
                 id,
@@ -13,14 +18,27 @@ export async function GET() {
                 max_people_per_slot,
                 image_url,
                 website_url,
+                start_event,
+                end_event,
                 event_slots (
                   id,
+                  datetime,
                   bookings (
                     people
                   )
                 )
               `)
         .order('created_at', { ascending: true })
+
+    switch (filter) {
+        case "new":
+            q = q.gte('end_event', today)
+            break;
+    }
+
+    const {data, error} = await q;
+
+    console.log(data)
 
     if (error) {
         return NextResponse.json({ error: error.message }, { status: 500 })

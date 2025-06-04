@@ -157,17 +157,25 @@ export default function EventPage() {
             </div>
 
             {event.image_url && (
-                <div className="relative h-64 w-full rounded-lg overflow-hidden shadow">
+                <div className="relative h-86 w-full rounded-lg overflow-hidden shadow">
                     <img
                         src={event.image_url}
                         alt={event.title}
                         className="w-full h-full object-cover"
                     />
-                    <div className="absolute inset-0 bg-black/30 flex items-end p-4">
-                        <h1 className="text-3xl font-bold text-white">{event.title}</h1>
+
+                    {/* overlay con sfumatura verticale */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/40 to-transparent" />
+
+                    {/* contenuto testo visibile sopra il gradiente */}
+                    <div className="absolute inset-0 flex items-end p-4">
+                        <h1 className="text-3xl font-bold text-white drop-shadow-lg">
+                            {event.title}
+                        </h1>
                     </div>
                 </div>
             )}
+
 
             <section className="space-y-3">
                 {event.location && (
