@@ -98,14 +98,15 @@ export default function AdminCheckinPage() {
         fetchBookings();
     }, [selectedDate, authenticated, refreshTrigger, fetchBookings]);
 
-    useEffect(() => {
-        const loadUpcomingSlots = async () => {
-            const res = await api.makeRequest('/api/admin/checkin/upcoming')
-            if (res.ok) {
-                const data = await res.json()
-                setFutureSlots(data)
-            }
+    const loadUpcomingSlots = async () => {
+        const res = await api.makeRequest('/api/admin/checkin/upcoming')
+        if (res.ok) {
+            const data = await res.json()
+            setFutureSlots(data)
         }
+    }
+
+    useEffect(() => {
 
         if (authenticated) loadUpcomingSlots()
     }, [authenticated])
@@ -270,7 +271,11 @@ export default function AdminCheckinPage() {
                                 <h3 className="font-semibold text-gray-700">Prossimi slot con prenotazioni</h3>
                                 <Link
                                     href="#"
-                                    onClick={() => loadEventDates()}
+                                    onClick={() => {
+                                        loadEventDates()
+                                        loadUpcomingSlots()
+                                        setRefreshTrigger(prev => prev + 1)
+                                    }}
                                     className="inline-flex items-center text-sm text-blue-600 hover:text-blue-800"
                                 >
                                     <ArrowPathIcon name="refresh" className="w-4 h-4 mr-2" />
