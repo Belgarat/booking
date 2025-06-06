@@ -31,6 +31,8 @@ export default function CreateEventModal({
                 image_url={formData.image_url || ''}
                 website_url={formData.website_url || ''}
                 max_people_per_slot={formData.max_people_per_slot}
+                start_event={formData.start_event || new Date().toISOString()}
+                end_event={formData.end_event || new Date().toISOString()}
                 editing={false}
                 saving={saving}
                 onChange={onChange}
