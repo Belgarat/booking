@@ -5,17 +5,19 @@ type Props = {
 }
 
 export default function EventCard({ event }: Props) {
+    console.log(event);
     return (
         <div className="rounded-lg shadow-md bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-lg transition">
             <img
                 src={event.image_url || `https://placehold.co/600x300?text=Evento`}
                 alt={event.title}
-                className="w-full h-84 object-cover"
+                className="w-full h-84 object-cover object-top"
             />
             <div className="p-4 space-y-2">
                 <h2 className="text-xl font-semibold">{event.title}</h2>
                 <p className="text-sm text-gray-600 dark:text-gray-400">
-                    Creato il: {new Date(event.created_at).toLocaleString()}
+                    Dal: {new Date(event.start_event ?? new Date()).toLocaleString()} &nbsp;
+                    al: {new Date(event.end_event ?? new Date()).toLocaleString()}
                 </p>
 
                 <div className="text-sm">

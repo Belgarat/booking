@@ -8,6 +8,8 @@ export type EventBase = {
     website_url?: string
     max_people_per_slot: number
     created_at: string
+    start_event?: string;
+    end_event?: string;
 }
 
 // Dato base di uno slot

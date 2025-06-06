@@ -37,6 +37,7 @@ export async function PUT(
     }
 
     const body = await request.json()
+    console.log('BODY PUT: ', body)
 
     const { error } = await supabase
         .from('events')
@@ -46,7 +47,9 @@ export async function PUT(
             location: body.location,
             image_url: body.image_url,
             website_url: body.website_url,
-            max_people_per_slot: body.max_people_per_slot
+            max_people_per_slot: body.max_people_per_slot,
+            start_event: body.start_event,
+            end_event: body.end_event,
         })
         .eq('id', eventId)
 

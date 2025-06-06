@@ -1,5 +1,7 @@
 'use client'
 import {EventFormValue} from "@/types";
+import {format, parseISO} from "date-fns";
+import {toISOStringWithOffset} from "@/utils/date";
 type Props = {
     title: string
     description: string
@@ -7,6 +9,8 @@ type Props = {
     image_url: string
     website_url: string
     max_people_per_slot: number
+    start_event: string
+    end_event: string
     editing: boolean
     saving: boolean
     onChange: (field: string, value: EventFormValue) => void
@@ -21,12 +25,15 @@ export default function AdminEventForm({
                                            image_url,
                                            website_url,
                                            max_people_per_slot,
+                                           start_event,
+                                           end_event,
                                            editing,
                                            saving,
                                            onChange,
                                            onSave,
                                            onCancel,
                                        }: Props) {
+
     return (
         <div className="space-y-2 pt-6">
             <h2 className="text-xl font-bold">
@@ -73,7 +80,26 @@ export default function AdminEventForm({
                 placeholder="Posti massimi per slot"
                 className="border p-2 w-full"
             />
-
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Inizio evento</label>
+                    <input
+                        type="datetime-local"
+                        value={format(parseISO(start_event), "yyyy-MM-dd'T'HH:mm")}
+                        onChange={(e) => onChange('start_event', toISOStringWithOffset(e.target.value))}
+                        className="border p-2 w-full rounded"
+                    />
+                </div>
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Fine evento</label>
+                    <input
+                        type="datetime-local"
+                        value={format(parseISO(end_event), "yyyy-MM-dd'T'HH:mm")}
+                        onChange={(e) => onChange('end_event', toISOStringWithOffset(e.target.value))}
+                        className="border p-2 w-full rounded"
+                    />
+                </div>
+            </div>
             <button
                 onClick={onSave}
                 className={`px-4 py-2 rounded w-full text-white ${

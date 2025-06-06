@@ -9,7 +9,9 @@ const initialEventState: EventBase = {
     website_url: '',
     max_people_per_slot: 1,
     id: '',
-    created_at: ''
+    created_at: '',
+    start_event: '',
+    end_event: ''
 }
 
 export function useEventForm() {

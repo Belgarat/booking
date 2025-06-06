@@ -40,3 +40,13 @@ export function formatDateLabel(dateString: string) {
     const date = new Date(dateString)
     return format(date, "EEEE dd/MM/yyyy", { locale: it })
 }
+
+/**
+ * Converte un input datetime-local in ISO con offset +00:00 (no Zulu)
+ * Es: 2025-06-15T08:00:00+00:00
+ */
+export function toISOStringWithOffset(dateString: string): string {
+    const date = new Date(dateString)
+    const zoned = toZonedTime(date, 'UTC') // Fissiamo l'offset a +00:00
+    return format(zoned, "yyyy-MM-dd'T'HH:mm:ssXXX", { timeZone: 'UTC' })
+}

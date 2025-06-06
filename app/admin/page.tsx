@@ -100,6 +100,8 @@ export default function AdminPage() {
         updateField('image_url', event.image_url || '')
         updateField('website_url', event.website_url || '')
         updateField('max_people_per_slot', event.max_people_per_slot || 1)
+        updateField('start_event', event.start_event || new Date().toISOString())
+        updateField('end_event', event.end_event || new Date().toISOString())
 
         await loadSlots(event.id)
         // setEditModalOpen(true)
@@ -114,6 +116,8 @@ export default function AdminPage() {
         updateField('image_url', event.image_url || '')
         updateField('website_url', event.website_url || '')
         updateField('max_people_per_slot', event.max_people_per_slot || 1)
+        updateField('start_event', event.start_event || new Date().toISOString())
+        updateField('end_event', event.end_event || new Date().toISOString())
 
         //await loadSlots(event.id)
         setEditModalOpen(true)

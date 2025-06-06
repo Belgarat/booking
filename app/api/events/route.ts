@@ -59,6 +59,8 @@ export async function GET(req: NextRequest) {
             location: event.location,
             website_url: event.website_url,
             created_at: event.created_at,
+            start_event: event.start_event,
+            end_event: event.end_event,
             totalMax,
             totalBooked,
             remaining
