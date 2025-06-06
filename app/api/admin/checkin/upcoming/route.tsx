@@ -24,7 +24,7 @@ export async function GET(req: Request) {
     )
   `)
         .gte('event_slots.datetime', today)
-        .order('datetime', { ascending: true, foreignTable: 'event_slots' }) // 👈 qui la differenza
+        .order('datetime', { ascending: true, foreignTable: 'event_slots' })
 
 
     if (error) {

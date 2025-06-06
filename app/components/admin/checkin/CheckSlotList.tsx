@@ -1,47 +1,73 @@
 'use client'
 
+import { useMemo, useState } from 'react'
 import { formatDateToItalianLocale } from '@/utils/date'
-import { BookingWithSlot } from "@/types/enriched";
+import { BookingWithSlot } from "@/types/enriched"
 
 type Props = {
-
     slots: BookingWithSlot[]
-
     onSelectSlot: (booking: BookingWithSlot) => void
 }
 
-export default function CheckinSlotList({ slots, onSelectSlot }: Props) {
+const PAGE_SIZE = 5
 
+export default function CheckinSlotList({ slots, onSelectSlot }: Props) {
+    const [showOnlyNotCheckedIn, setShowOnlyNotCheckedIn] = useState(true)
+    const [currentPage, setCurrentPage] = useState(1)
+
+    const filteredSlots = useMemo(() => {
+        const base = showOnlyNotCheckedIn
+            ? slots.filter(slot => !slot.checked_in)
+            : slots
+        return base.sort((a, b) =>
+            new Date(a.event_slots.datetime).getTime() - new Date(b.event_slots.datetime).getTime()
+        )
+    }, [slots, showOnlyNotCheckedIn])
+
+    const totalPages = Math.ceil(filteredSlots.length / PAGE_SIZE)
+
+    const paginatedSlots = useMemo(() => {
+        const start = (currentPage - 1) * PAGE_SIZE
+        return filteredSlots.slice(start, start + PAGE_SIZE)
+    }, [filteredSlots, currentPage])
 
     if (!slots || slots.length === 0) {
         return (
             <section className="space-y-4">
                 <h2 className="text-xl font-bold text-gray-800">Prenotazioni per gli slot</h2>
-                <p className="text-gray-500">Nessuna prenotazione trovata per gli slot di oggi o per la data selezionata.</p>
+                <p className="text-gray-500">Nessuna prenotazione trovata.</p>
             </section>
-        );
+        )
     }
 
     return (
         <section className="space-y-4">
-            {/* Il titolo potrebbe essere "Prenotazioni" o simile, dato che elenchiamo singole prenotazioni */}
-            <h2 className="text-xl font-bold text-gray-800">Prenotazioni negli slot disponibili</h2>
-            <ul className="space-y-3">
-                {/* Iteriamo sull'array di prenotazioni. Rinomino 'slot' in 'booking' per chiarezza */}
-                {slots.map((booking) => {
-                    // 'booking' qui è un oggetto BookingWithSlot, come quello nell'esempio:
-                    // { id: "booking_id", name: "Marco", ..., event_slots: { datetime: "..." } }
+            <div className="flex justify-between items-center">
+                <h2 className="text-xl font-bold text-gray-800">Prenotazioni negli slot disponibili</h2>
+                <label className="inline-flex items-center text-sm text-gray-700 space-x-2">
+                    <input
+                        type="checkbox"
+                        checked={!showOnlyNotCheckedIn}
+                        onChange={() => {
+                            setShowOnlyNotCheckedIn(prev => !prev)
+                            setCurrentPage(1)
+                        }}
+                        className="form-checkbox h-4 w-4 text-green-600"
+                    />
+                    <span>Mostra tutti</span>
+                </label>
+            </div>
 
-                    // Non c'è 'booking.bookings', perché 'booking' è già una singola prenotazione.
-                    // Le informazioni sui partecipanti e sullo stato checked_in sono dirette proprietà di 'booking'.
-                    const numberOfPeople = booking.people;
-                    const isCheckedIn = booking.checked_in;
+            <ul className="space-y-3">
+                {paginatedSlots.map((booking) => {
+                    const numberOfPeople = booking.people
+                    const isCheckedIn = booking.checked_in
 
                     return (
                         <li
-                            key={booking.id} // L'ID della prenotazione
+                            key={booking.id}
                             className="border p-4 rounded-lg bg-white shadow-sm hover:shadow-md transition-shadow duration-150 ease-in-out cursor-pointer"
-                            onClick={() => onSelectSlot(booking)} // Passa l'intera prenotazione al gestore del click
+                            onClick={() => onSelectSlot(booking)}
                         >
                             <div className="flex justify-between items-start">
                                 <div className="flex-grow">
@@ -64,7 +90,7 @@ export default function CheckinSlotList({ slots, onSelectSlot }: Props) {
                                         </span>
                                     ) : (
                                         <span className="mt-1 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                                             <svg className="-ml-0.5 mr-1.5 h-2 w-2 text-red-400" fill="currentColor" viewBox="0 0 8 8">
+                                            <svg className="-ml-0.5 mr-1.5 h-2 w-2 text-red-400" fill="currentColor" viewBox="0 0 8 8">
                                                 <circle cx="4" cy="4" r="3" />
                                             </svg>
                                             Non presente
@@ -72,7 +98,7 @@ export default function CheckinSlotList({ slots, onSelectSlot }: Props) {
                                     )}
                                 </div>
                                 <button
-                                    type="button" // Buona pratica per i bottoni non di submit
+                                    type="button"
                                     className="ml-4 text-sm font-medium text-blue-600 hover:text-blue-800 hover:underline whitespace-nowrap"
                                 >
                                     Gestisci
@@ -82,6 +108,27 @@ export default function CheckinSlotList({ slots, onSelectSlot }: Props) {
                     )
                 })}
             </ul>
+
+            {/* PAGINAZIONE */}
+            {totalPages > 1 && (
+                <div className="flex justify-between text-sm items-center pt-4 border-t">
+                    <button
+                        disabled={currentPage === 1}
+                        onClick={() => setCurrentPage(prev => prev - 1)}
+                        className="text-blue-600 disabled:text-gray-400"
+                    >
+                        ← Indietro
+                    </button>
+                    <span>Pagina {currentPage} di {totalPages}</span>
+                    <button
+                        disabled={currentPage === totalPages}
+                        onClick={() => setCurrentPage(prev => prev + 1)}
+                        className="text-blue-600 disabled:text-gray-400"
+                    >
+                        Avanti →
+                    </button>
+                </div>
+            )}
         </section>
     )
 }

@@ -161,7 +161,7 @@ export default function EventPage() {
                     <img
                         src={event.image_url}
                         alt={event.title}
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-cover object-top"
                     />
 
                     {/* overlay con sfumatura verticale */}

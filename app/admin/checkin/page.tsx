@@ -68,7 +68,11 @@ export default function AdminCheckinPage() {
         )
         if (res.ok) {
             const data: BookingWithSlot[] = await res.json() // Specifica il tipo per chiarezza
-            setSlots(data)
+            setSlots(
+                [...data].sort((a, b) =>
+                    parseISO(a.event_slots.datetime).getTime() - parseISO(b.event_slots.datetime).getTime()
+                )
+            )
             if (data.length === 0) {
                 showFeedback({ text: 'Nessuna prenotazione trovata per questa data.', variant: 'info' });
             }
