@@ -11,10 +11,53 @@ import { useFeedback } from '@/hooks/useFeedback'
 import { useApi } from '@/hooks/useApi'
 import { BookingWithSlot } from '@/types/enriched' // Assicurati che il tipo sia definito correttamente
 import CheckinModal from '@/app/components/admin/checkin/CheckinModal'
-import CheckinSlotList from "@/app/components/admin/checkin/CheckSlotList";
-import Link from "next/link";
-import {ArrowPathIcon} from "@heroicons/react/24/solid";
 import FullScreenSpinner from "@/app/components/common/FullScreenSpinner";
+import {UpcomingSlot} from "@/app/components/event/UpcomingSlot";
+import {SlotSection} from "@/app/components/event/SlotSection";
+
+/*const useUpcomingSlots = (futureSlots: BookingWithSlot[], pageSize: number) => {
+    const [currentPage, setCurrentPage] = useState(1)
+
+    const upcomingSlots = futureSlots
+        .filter(slot => {
+            const slotDate = parseISO(slot.event_slots?.datetime || '')
+            return isAfter(slotDate, startOfDay(new Date()))
+        })
+        .sort((a, b) =>
+            parseISO(a.event_slots.datetime).getTime() - parseISO(b.event_slots.datetime).getTime()
+        )
+
+    const totalPages = Math.ceil(upcomingSlots.length / pageSize)
+
+    const paginatedSlots = (() => {
+        const start = (currentPage - 1) * pageSize
+        return upcomingSlots.slice(start, start + pageSize)
+    })()
+
+    return { paginatedSlots, currentPage, setCurrentPage, totalPages }
+}
+
+const useAuthentication = (api: ReturnType<typeof useApi>, showFeedback: Function) => {
+    const [password, setPassword] = useState('')
+    const [authenticated, setAuthenticated] = useState(false)
+
+    const handleLogin = async () => {
+        const res = await api.makeRequest('/api/admin/login', {
+            method: 'POST',
+            body: JSON.stringify({ password }),
+        })
+        if (res.ok) {
+            setAuthenticated(true)
+            showFeedback(null)
+        } else {
+            showFeedback({ text: 'Password errata', variant: 'error' as const })
+        }
+    }
+
+    return { password, setPassword, authenticated, handleLogin }
+}*/
+
+
 
 export default function AdminCheckinPage() {
     const [password, setPassword] = useState('')
@@ -27,6 +70,8 @@ export default function AdminCheckinPage() {
     const [currentPage, setCurrentPage] = useState(1)
     const [futureSlots, setFutureSlots] = useState<BookingWithSlot[]>([])
     const [loading, setLoading] = useState(false)
+    const [showUpcoming, setShowUpcoming] = useState(false)
+
 
     const pageSize = 5
 
@@ -184,14 +229,14 @@ export default function AdminCheckinPage() {
     }
     return (
         <main className="min-h-screen bg-gray-50 p-6 sm:p-8">
-            <div className="max-w-6xl mx-auto bg-white rounded-lg shadow-xl p-6 sm:p-8 space-y-8">
-                <h1 className="text-3xl font-extrabold text-gray-900 text-center mb-6">
-                    Gestione Check-in Prenotazioni
-                </h1>
+            <h1 className="text-3xl font-extrabold text-gray-900 text-center mb-6">
+                Gestione Check-in Prenotazioni
+            </h1>
+            <div className="max-w-6xl mx-auto bg-white rounded-lg shadow-xl p-6 sm:p-8 space-y-8 md:space-y-0 md:flex md:gap-8">
 
-                {/* Sezione Selezione Data */}
-                <section className="bg-gray-50 p-6 rounded-lg shadow-inner">
-                    <h2 className="text-xl font-semibold text-gray-800 mb-4">Seleziona una Data</h2>
+            {/* Sezione Selezione Data */}
+                <section className="bg-gray-50 p-4 sm:p-6 rounded-lg shadow-inner w-full md:w-1/2 space-y-6">
+                <h2 className="text-xl font-semibold text-gray-800 mb-4">Seleziona una Data</h2>
                     <div id="daypicker" className="flex flex-wrap justify-center">
                         <DayPicker
                             mode="single"
@@ -266,100 +311,32 @@ export default function AdminCheckinPage() {
                                 hasEvents: 'relative after:content-[""] after:absolute after:bottom-1 after:left-1/2 after:-translate-x-1/2 after:w-1.5 after:h-1.5 after:bg-green-600 after:rounded-full'
                             }}
                         />
-                        <div className="md:w-1/2 bg-white p-4 rounded shadow space-y-4">
-                            <div className="flex justify-between items-center mb-4">
-                                <h3 className="font-semibold text-gray-700">Prossimi slot con prenotazioni</h3>
-                                <Link
-                                    href="#"
-                                    onClick={() => {
-                                        loadEventDates()
-                                        loadUpcomingSlots()
-                                        setRefreshTrigger(prev => prev + 1)
-                                    }}
-                                    className="inline-flex items-center text-sm text-blue-600 hover:text-blue-800"
-                                >
-                                    <ArrowPathIcon name="refresh" className="w-4 h-4 mr-2" />
-                                </Link>
-                            </div>
-
-                            {paginatedSlots.length === 0 && (
-                                <p className="text-sm text-gray-500">Nessuno slot disponibile.</p>
-                            )}
-
-                            <ul className="divide-y divide-gray-200 text-sm">
-                                {paginatedSlots.map(slot => {
-                                    const slotDate = parseISO(slot.event_slots.datetime)
-                                    return (
-                                        <li
-                                            key={slot.id}
-                                            className="py-2 cursor-pointer hover:bg-gray-100 rounded transition"
-                                            onClick={() => {
-                                                setSelectedDate(slotDate)
-                                                // opzionale: scroll al DayPicker
-                                                document.getElementById('daypicker')?.scrollIntoView({ behavior: 'smooth' })
-                                            }}
-                                        >
-                                            <p className="text-gray-500 text-sm italic">
-                                                {slot.event_slots?.events?.title || 'Evento senza nome'}
-                                            </p>
-                                            <p className="font-medium text-gray-800">
-                                                {format(slotDate, 'dd MMM yyyy – HH:mm', { locale: it })}
-                                            </p>
-                                            <p className="text-gray-600">{slot.name} – {slot.people} partecipant{slot.people > 1 ? 'i' : 'e'}</p>
-                                        </li>
-                                    )
-                                })}
-                            </ul>
-
-
-                            {/* Paginazione */}
-                            {totalPages > 1 && (
-                                <div className="flex justify-between text-sm">
-                                    <button
-                                        disabled={currentPage === 1}
-                                        onClick={() => setCurrentPage(prev => prev - 1)}
-                                        className="text-blue-600 disabled:text-gray-400"
-                                    >
-                                        ← Indietro
-                                    </button>
-                                    <span>Pagina {currentPage} di {totalPages}</span>
-                                    <button
-                                        disabled={currentPage === totalPages}
-                                        onClick={() => setCurrentPage(prev => prev + 1)}
-                                        className="text-blue-600 disabled:text-gray-400"
-                                    >
-                                        Avanti →
-                                    </button>
-                                </div>
-                            )}
-                        </div>
                     </div>
                 </section>
-
-                {/* Sezione Feedback */}
-                {feedback && (
-                    <div className={`p-4 rounded-lg text-sm text-center ${feedback.variant === 'error' ? 'bg-red-100 text-red-700 border border-red-200' : 'bg-blue-100 text-blue-700 border border-blue-200'}`}>
-                        <p className="font-medium">{feedback.text}</p>
-                    </div>
-                )}
-
                 {/* Sezione Lista Slot */}
-                <section className="bg-gray-50 p-6 rounded-lg shadow-inner">
-                    <h2 className="text-xl font-semibold text-gray-800 mb-4">
-                        Slot per {selectedDate ? format(selectedDate, 'dd MMMM yyyy', { locale: it }) : 'la data selezionata'}
-                    </h2>
-                    {slots.length === 0 && !feedback && selectedDate && (
-                        <p className="text-gray-500 text-center p-4">
-                            Nessuna prenotazione trovata per il giorno selezionato.
-                        </p>
-                    )}
-                    {slots.length > 0 && (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                            <CheckinSlotList slots={slots} onSelectSlot={handleOpenSlot} />
-                        </div>
-                    )}
+                <section className="bg-gray-50 p-4 sm:p-6 rounded-lg shadow-inner w-full md:w-1/2">
+                    <SlotSection
+                        selectedDate={selectedDate || new Date()}
+                        slots={slots}
+                        feedback={feedback && (feedback.variant === 'error' || feedback.variant === 'info') ? feedback : null}
+                        handleOpenSlot={handleOpenSlot}
+                    />
                 </section>
             </div>
+            <UpcomingSlot
+                showUpcoming={showUpcoming}
+                paginatedSlots={paginatedSlots}
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onToggle={() => setShowUpcoming(prev => !prev)}
+                onRefresh={() => {
+                    loadEventDates()
+                    loadUpcomingSlots()
+                    setRefreshTrigger(prev => prev + 1)
+                }}
+                onSlotSelect={setSelectedDate}
+                onPageChange={setCurrentPage}
+            />
 
             {selectedSlot && (
                 <CheckinModal
